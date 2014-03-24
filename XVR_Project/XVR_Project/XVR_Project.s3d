@@ -27,11 +27,13 @@ function DrawPlane(col, min, max);
 
 var file_name = "test.txt";
 var text_src = "stockimage.jpg";
-
+var mesh_src = "object.aam";
 function OnDownload()
 {
 	FileDownload(file_name);
 	FileDownload(text_src);
+	FileDownload(mesh_src);
+	
 }
 
 
@@ -49,7 +51,11 @@ function OnInit(params)
 	
 	global var my_texture_foo = CVmTexture(text_src);
 
-	// TODO: put your initialization code here
+	var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
+   	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
+   	m_mesh.Normalize(10); 
+   	global my_obj = CVmObj(m_mesh);
+   	my_obj.SetPosition(10, 0, 10);
 }
 
 
@@ -87,6 +93,7 @@ function OnFrame()
          glVertex(0,10,0);      
       glEnd(); 
       
+    my_obj.Draw();
 	SceneEnd();
 }
 
