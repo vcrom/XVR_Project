@@ -1,6 +1,7 @@
 /* Include s3d symbols */
 #include <Script3d.h>
 #include <Camera.s3d.h>
+//#include "sys_camera.s3d"
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
@@ -22,13 +23,15 @@ var PosL = [0.0, 10.0, 10.0];	// default light position
 /* Function declarations */
 function CameraMoveMouse();
 function DrawGrid(col, size);
+function DrawPlane(col, min, max);
 
-
+var file_name = "test.txt";
+var text_src = "stockimage.jpg";
 
 function OnDownload()
 {
-	// TODO: download your resources here
-	// E.g.: FileDownload("resource.ext");
+	FileDownload(file_name);
+	FileDownload(text_src);
 }
 
 
@@ -42,7 +45,9 @@ function OnInit(params)
 	Light0 = CVmLight();
 	Light0.SetPosition(PosL);
 	Light0.SetDiffuse(1, 1, 1);
-	Light0.Enable();	
+	Light0.Enable();
+	
+	global var my_texture_foo = CVmTexture(text_src);
 
 	// TODO: put your initialization code here
 }
@@ -56,10 +61,32 @@ function OnFrame()
 
 	SceneBegin();
 
-	DrawGrid([0.5, 0.5, 0.5], 100);
-
+	//DrawGrid([0.5, 0.5, 0.5], 100);
+	DrawPlane([1,0,0], [-50,-50], [50, 50]);
+	//if(FileExists(file_name)) {
+		var file_string = LoadFile(file_name);
+		//var file_string = FileRead(file_name);
+		ConsoleText(0.01,0.86,file_string[0]);
+		ConsoleText(0.04,0.90, str(my_texture_foo.components ));
+	//}
+	
 	// TODO: put your drawing code here
 
+
+	SetActiveTexture(my_texture_foo); 
+      glEnable(GL_TEXTURE_2D);
+      glBegin(GL_QUADS);
+         glNormal(0,0,1);      
+         glTexCoord(0,1); 
+         glVertex(0,0,0);         
+         glTexCoord(1,1);
+         glVertex(10,0,0);      
+         glTexCoord(1,0);
+         glVertex(10,10,0);      
+         glTexCoord(0,0);
+         glVertex(0,10,0);      
+      glEnd(); 
+      
 	SceneEnd();
 }
 
@@ -124,6 +151,29 @@ function DrawGrid(col, size)
 			glVertex(max, 0, i);
 			glVertex(min, 0, i);
 		}
+	glEnd();
+	
+	/* polite restoration of previous OpenGL status */
+	glPopAttrib();
+}
+
+function DrawPlane(col, min, max)
+{
+	/* let's not mess up current OpenGL status */
+	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	
+	glDisable(GL_LIGHTING);
+	glColor(col);
+	
+	glBegin(GL_TRIANGLES);
+	glVertex(min[0], 0, min[1]);
+	glVertex(min[0], 0, max[1]);
+	glVertex(max[0], 0, min[1]);
+	
+	glVertex(max[0], 0, max[1]);
+	glVertex(max[0], 0, min[1]);
+	glVertex(min[0], 0, max[1]);	
+	
 	glEnd();
 	
 	/* polite restoration of previous OpenGL status */
