@@ -1,0 +1,91 @@
+#ifndef _DIR_LIGHT_
+#define _DIR_LIGHT_
+
+class  SpotlLight {
+	var light;
+	var pitch, yaw;
+	var look_at_vector;
+	var position;
+	
+	var ambient_light;
+	var diffuse_light;
+	var specular_light;
+	
+	var light_renderable_object;
+	Initialize(pos);
+	Rotate(y, p);
+	Update();
+	SetRenderableObject(obj);
+	Render();
+};
+
+function SpotlLight::Initialize(pos) 
+{
+	light = CVmLight();
+	pitch = 0;
+	yaw = 0;
+	position = pos;
+	light_renderable_object = null;
+	
+	light.Enable();
+	light.SetAmbient([0.5, 0.5, 0.5]);
+	light.SetDiffuse([0.5, 0.5, 0.5]);
+	light.SetSpecular([0.5, 0.5, 0.5]);
+	light.SetPosition(position);
+	light.SetSpotDirection([0,0,1]); 
+}
+
+function SpotlLight::SetRenderableObject(mesh)
+{
+	mesh.Normalize(2); 
+	mesh.CenterBoundingBox();
+	light_renderable_object = CVmObj(mesh);
+	
+	
+	var mat = CVmMaterial();
+	mat.Ambient = [1,0,0];
+	mat.Diffuse = [0,1,0];
+	
+	//light_renderable_object.ForceMaterial(mat, true); 	
+	var scale = light_renderable_object.GetScale();
+	
+	light_renderable_object.SetPosition(position);
+}
+
+function SpotlLight::Render() 
+{
+	if(light_renderable_object != null)
+		light_renderable_object.Draw();
+}
+
+function SpotlLight::Update()
+{
+	//update lookat 
+	look_at_vector = [0, 0, 1];
+	//yaw rotation Y
+	look_at_vector[0] = cos(yaw)*look_at_vector[0] + sin(yaw)*look_at_vector[2];
+	look_at_vector[1] = look_at_vector[1];
+	look_at_vector[2] = -sin(yaw)*look_at_vector[0] + cos(yaw)*look_at_vector[2];
+	
+	//pitch rotation X
+	look_at_vector[0] = look_at_vector[0];
+	look_at_vector[1] = cos(pitch)*look_at_vector[1] - sin(pitch)*look_at_vector[2];
+	look_at_vector[2] = sin(pitch)*look_at_vector[1] + cos(pitch)*look_at_vector[2];
+	
+	//Update teh light itself
+	light.SetSpotDirection(look_at_vector);	
+	//light.SetPosition(position);
+	if(light_renderable_object != null) 
+	{
+		light_renderable_object.SetPosition(position);
+		light_renderable_object.Rotate([1,0,0], pitch);
+		light_renderable_object.Rotate([0,1,0], yaw);
+	}
+} 
+
+function SpotlLight::Rotate(y, p) {
+	yaw = (yaw + y)%360;
+	pitch = (pitch + p)%360;
+}
+
+#endif _DIR_LIGHT_

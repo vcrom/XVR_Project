@@ -1,12 +1,13 @@
 /* Include s3d symbols */
 #include <Script3d.h>
 #include <Camera.s3d.h>
+#include "spot_light.s3d"
 //#include "sys_camera.s3d"
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
 SET SCENE_NEAR = 0.5;
-SET SCENE_FAR  = 1000;
+SET SCENE_FAR  = 1000; 
 
 
 // TODO: put your global variables here
@@ -28,11 +29,14 @@ function DrawPlane(col, min, max);
 var file_name = "test.txt";
 var text_src = "stockimage.jpg";
 var mesh_src = "object.aam";
+var light_mesh = "lamp.AAM";
+
 function OnDownload()
 {
 	FileDownload(file_name);
 	FileDownload(text_src);
 	FileDownload(mesh_src);
+	FileDownload(light_mesh);
 	
 }
 
@@ -44,10 +48,19 @@ function OnInit(params)
 	CameraGetCurrent().SetPosition(CamPos);
 
 	/* initialize light */
+	/*
 	Light0 = CVmLight();
 	Light0.SetPosition(PosL);
 	Light0.SetDiffuse(1, 1, 1);
 	Light0.Enable();
+	*/
+	Light0 = SpotlLight();
+	var Lpo = [0,2,-10];
+	Light0.Initialize(Lpo);
+	
+	var l_mesh = CVmNewMesh(light_mesh);
+	//l_mesh.Normalize(2); 
+	Light0.SetRenderableObject(l_mesh);//CVmObj(l_mesh));
 	
 	global var my_texture_foo = CVmTexture(text_src);
 
@@ -55,7 +68,7 @@ function OnInit(params)
    	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
    	m_mesh.Normalize(10); 
    	global my_obj = CVmObj(m_mesh);
-   	my_obj.SetPosition(10, 0, 10);
+   	my_obj.SetPosition(Lpo[0], Lpo[1], Lpo[2]+10);
 }
 
 
@@ -93,7 +106,9 @@ function OnFrame()
          glVertex(0,10,0);      
       glEnd(); 
       
+    glPolygonOffset(1.5, 2);
     my_obj.Draw();
+    Light0.Render();
 	SceneEnd();
 }
 
