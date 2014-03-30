@@ -16,31 +16,36 @@ SET SCENE_FAR  = 1000;
 var Light0;
 var PosL = [0.0, 10.0, 10.0];	// default light position
 
-
 /* Function declarations */
 function DrawTerrain();
+function build_wall_list();
+function build_floor_list();
 
-var file_name = "test.txt";
+
+/* Other globals */
+var map = "map.txt";
 var crate = "crate.jpg";
 var wall = "wall.png";
 var grass = "grass.png";
 var mesh_src = "object.aam";
 
-global var wall_texture;
-global var grass_texture;
+var wall_texture;
+var grass_texture;
+
+var wall_list;
+var floor_list;
+
+var height;
 
 function OnDownload() {
-	FileDownload(file_name);
+	FileDownload(map);
 	FileDownload(mesh_src);
 	
 	FileDownload(grass);
 	FileDownload(wall);
 }
 
-
-
-function OnInit(params)
-{
+function OnInit(params) {
 	CameraInit();
 	
 	/* initialize light */
@@ -49,10 +54,19 @@ function OnInit(params)
 	Light0.SetDiffuse(1, 1, 1);
 	Light0.Enable();
 	
+	var tmp = LoadFile(map);
+   	height = array(0);
+   	for (var i = 0; i < Len(tmp); ++i) {
+   		var line = Split(tmp[i], " ");
+   		aadd(height, line);
+   	}
+   	
 	wall_texture = CVmTexture(wall);
 	grass_texture = CVmTexture(grass);
 	
-
+	build_wall_list();
+	build_floor_list();
+	
 	var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
    	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
    	m_mesh.Normalize(10); 
@@ -62,20 +76,21 @@ function OnInit(params)
 
 
 
-function OnFrame()
-{
+function OnFrame() {
 	/* manage camera */
-	CameraMoveMouse();
+	CameraMoveMouse(height);
 
 	SceneBegin();
 
 	//DrawGrid([0.5, 0.5, 0.5], 100);
 	DrawTerrain();
-	//if(FileExists(file_name)) {
-		var file_string = LoadFile(file_name);
-		//var file_string = FileRead(file_name);
-		ConsoleText(0.01,0.86,file_string[0]);
+	//if(FileExists(map)) {
+		//var file_string = LoadFile(map);
+		//var file_string = FileRead(map);
+		//ConsoleText(0.01,0.86,file_string[0]);
 	//}
+	
+	
 	
 	// TODO: put your drawing code here
 
@@ -117,78 +132,96 @@ function DrawTerrain() {
 	/* let's not mess up current OpenGL status */
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
 	
-	glLineWidth(1);
 	glDisable(GL_LIGHTING);
 
-	var multiplier = 10.0;
-	var height = {{0,0,0,0}, {0,0,0,0}, {0,2,1,1}, {0,2,2,2}, {5,5,4,3}};
 	glEnable(GL_TEXTURE_2D);
 	SetActiveTexture(grass_texture, VR_BILINEAR_FILTER, 0);
+	glCallList(floor_list);
+	
+	SetActiveTexture(wall_texture, VR_FORCE_TEXTURE, 0);
+	glCallList(wall_list);
+	
+	/* polite restoration of previous OpenGL status */
+	glPopAttrib();
+}
+
+
+function build_floor_list() {
+	var multiplier = 2.0;
+
+	floor_list = glGenLists(1);
+	glNewList(floor_list, GL_COMPILE);
 	glBegin(GL_TRIANGLES);
-		for (var i = 0; i < 5; ++i) {
-			for (var j = 0; j < 4; ++j) {
+		for (var i = 0; i < Len(height); ++i) {
+			for (var j = 0; j < Len(height[i]); ++j) {
 				glTexCoord(0,0); 
-				glVertex(multiplier*i,     height[i][j], multiplier*j);
+				glVertex(multiplier*i,     val(height[i][j]), multiplier*j);
 				glTexCoord(0,1); 
-				glVertex(multiplier*i,     height[i][j], multiplier*(j+1));
+				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
 				glTexCoord(1,0); 
-				glVertex(multiplier*(i+1), height[i][j], multiplier*j);
+				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
 				
 				glTexCoord(0,1); 
-				glVertex(multiplier*i,     height[i][j], multiplier*(j+1));
+				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
 				glTexCoord(1,1); 
-				glVertex(multiplier*(i+1), height[i][j], multiplier*(j+1));
+				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*(j+1));
 				glTexCoord(1,0); 
-				glVertex(multiplier*(i+1), height[i][j], multiplier*j);
+				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
 			}
 		}
 	glEnd();
+	glEndList();
+	outputln("\nwall list = ", floor_list);
+}
+
+function build_wall_list() {
+	var multiplier = 2.0;
 	
-	SetActiveTexture(wall_texture, VR_FORCE_TEXTURE, 0);
+	wall_list = glGenLists(1);
+	glNewList(wall_list, GL_COMPILE);
 	glBegin(GL_TRIANGLES);
-		for (var i = 0; i < 5; ++i) {
-			for (var j = 1; j < 4; ++j) {
+		for (var i = 0; i < Len(height); ++i) {
+			for (var j = 1; j < Len(height[i]); ++j) {
 				if (height[i][j] != height[i][j-1]) {
-					var size = abs(height[i][j] - height[i][j-1])/multiplier; 
+					var size = abs(val(height[i][j]) - val(height[i][j-1]))/multiplier; 
 					glTexCoord(1,0); 
-					glVertex(multiplier*(i+1), height[i][j-1], multiplier*j);
+					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
 					glTexCoord(0,0); 
-					glVertex(multiplier*i,     height[i][j-1], multiplier*j);
+					glVertex(multiplier*i,     val(height[i][j-1]), multiplier*j);
 					glTexCoord(0,size); 
-					glVertex(multiplier*i,     height[i][j],   multiplier*j);
+					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
 					
 					glTexCoord(1,0); 
-					glVertex(multiplier*(i+1), height[i][j-1], multiplier*j);
+					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
 					glTexCoord(0,size); 
-					glVertex(multiplier*i,     height[i][j],   multiplier*j);
+					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
 					glTexCoord(1,size); 
-					glVertex(multiplier*(i+1), height[i][j],   multiplier*j);
+					glVertex(multiplier*(i+1), val(height[i][j]),   multiplier*j);
 				}
 			}
 		}
 		
-		for (var i = 1; i < 5; ++i) {
-			for (var j = 0; j < 4; ++j) {
+		for (var i = 1; i < Len(height); ++i) {
+			for (var j = 0; j < Len(height[i]); ++j) {
 				if (height[i][j] != height[i-1][j]) {
-					var size = abs(height[i][j] - height[i-1][j])/multiplier; 
+					var size = abs(val(height[i][j]) - val(height[i-1][j]))/multiplier; 
 					glTexCoord(0,0); 
-					glVertex(multiplier*i, height[i-1][j], multiplier*j);
+					glVertex(multiplier*i, val(height[i-1][j]), multiplier*j);
 					glTexCoord(0,1); 
-					glVertex(multiplier*i, height[i-1][j], multiplier*(j+1));
+					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
 					glTexCoord(size,0); 
-					glVertex(multiplier*i, height[i][j],   multiplier*j);
+					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
 					
 					glTexCoord(size,0); 
-					glVertex(multiplier*i, height[i][j],   multiplier*j);
+					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
 					glTexCoord(0,1); 
-					glVertex(multiplier*i, height[i-1][j], multiplier*(j+1));
+					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
 					glTexCoord(size,1); 
-					glVertex(multiplier*i, height[i][j],   multiplier*(j+1));
+					glVertex(multiplier*i, val(height[i][j]),   multiplier*(j+1));
 				}
 			}
 		}
 	glEnd();
-	
-	/* polite restoration of previous OpenGL status */
-	glPopAttrib();
+	glEndList();
+	outputln("\nfloor list = ", wall_list);
 }
