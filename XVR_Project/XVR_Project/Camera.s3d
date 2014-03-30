@@ -1,0 +1,71 @@
+#include <Script3d.h>
+#include <Camera.s3d.h>
+
+var camera_position = [0.0, 4.0, 0.0];
+var camera_rotation_y = 135;
+var camera_rotation_xz = 0;
+
+function CameraInit() {
+	CameraGetCurrent().SetPosition(camera_position);
+	CameraGetCurrent().SetRotation(camera_rotation_y, 0.0, 1.0, 0.0);
+} 
+
+function check_out_of_limits(pos, limit) {
+	if (pos < 0)
+		return 0;
+	else if (pos > limit - 0.001)
+		return limit - 0.001;
+	return pos;
+}
+
+function CameraMoveMouse(height) {
+	static var InMouseR = false, InMouseL = false;				
+	static var PrecX = 0, PrecY = 0;
+			
+	// Change these values to modify the mouse sensitivity
+	var TR_SENSITIVITY  = 0.001;
+	var ROT_SENSITIVITY = 0.01;
+	
+	// Mouse manager
+	if(Mouse.ButtonL && !Mouse.ButtonR) {
+		//====  Left Button: Camera rotation  ====//
+		if (InMouseL) {
+			camera_rotation_xz += (Mouse.Y-PrecY)*ROT_SENSITIVITY;
+			camera_rotation_y += (Mouse.X-PrecX)*ROT_SENSITIVITY;
+			CameraSetRotation(camera_rotation_xz, 1.0, 0.0, 0.0);
+			CameraRotate(camera_rotation_y, 0.0, 1.0, 0.0);
+		} else {
+			PrecX = Mouse.X;
+			PrecY = Mouse.Y;
+		}
+		
+		InMouseL = true;
+		InMouseR = false;
+	} else if (Mouse.ButtonR) {
+		//====  Right Button: Camera translation  ====//
+		if (InMouseR) {
+			var CameraMatrix = CameraGetMatrix();
+			
+			if (!Mouse.ButtonL) {
+				camera_position[0] -= (Mouse.y-PrecY)*TR_SENSITIVITY*cos((90-camera_rotation_y)*0.0174532925);
+				camera_position[2] += (Mouse.y-PrecY)*TR_SENSITIVITY*cos(camera_rotation_y*0.0174532925);
+			}
+			
+			camera_position[0] = check_out_of_limits(camera_position[0], Len(height)*2);
+			camera_position[2] = check_out_of_limits(camera_position[2], Len(height[0])*2);
+			
+			outputln(camera_position[0]/2, camera_position[2]/2);
+			camera_position[1] = val(height[camera_position[0]/2][camera_position[2]/2])+4.0;
+			CameraSetPosition(camera_position);		
+		} else {
+			PrecX = Mouse.X;
+			PrecY = Mouse.Y;
+		}
+		InMouseR = true;
+		InMouseL = false;
+	} else {
+		InMouseR = false;
+		InMouseL = false;
+	}
+
+}
