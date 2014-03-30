@@ -2,8 +2,12 @@
 #include <Script3d.h>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <Camera.s3d.h>
 #include "spot_light.s3d"
+=======
+#include "Camera.s3d"
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
 #include "Camera.s3d"
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
@@ -30,8 +34,13 @@ function DrawTerrain();
 function build_wall_list();
 function build_floor_list();
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
 
 
@@ -42,6 +51,7 @@ var crate = "crate.jpg";
 var wall = "wall.png";
 var grass = "grass.png";
 var mesh_src = "object.aam";
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 var light_mesh = "lamp.AAM";
@@ -58,6 +68,8 @@ function OnDownload()
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
+=======
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 
 var wall_texture;
 var grass_texture;
@@ -66,6 +78,7 @@ var wall_list;
 var floor_list;
 
 var height;
+<<<<<<< HEAD
 
 function OnDownload() {
 	FileDownload(map);
@@ -75,6 +88,17 @@ function OnDownload() {
 	FileDownload(wall);
 }
 
+=======
+
+function OnDownload() {
+	FileDownload(map);
+	FileDownload(mesh_src);
+	
+	FileDownload(grass);
+	FileDownload(wall);
+}
+
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 function OnInit(params) {
 	CameraInit();
 	
@@ -89,6 +113,7 @@ function OnInit(params) {
 	var Lpo = [0,2,-10];
 	Light0.Initialize(Lpo);
 	
+<<<<<<< HEAD
 	var l_mesh = CVmNewMesh(light_mesh);
 	//l_mesh.Normalize(2); 
 	Light0.SetRenderableObject(l_mesh);//CVmObj(l_mesh));
@@ -108,6 +133,8 @@ function OnInit(params) {
 	
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 	var tmp = LoadFile(map);
    	height = array(0);
    	for (var i = 0; i < Len(tmp); ++i) {
@@ -121,6 +148,9 @@ function OnInit(params) {
 	build_wall_list();
 	build_floor_list();
 	
+<<<<<<< HEAD
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
+=======
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 	var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
    	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
@@ -152,6 +182,7 @@ function OnFrame() {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	SetActiveTexture(my_texture_foo); 
       glEnable(GL_TEXTURE_2D);
       glBegin(GL_QUADS);
@@ -169,6 +200,9 @@ function OnFrame() {
     glPolygonOffset(1.5, 2);
     my_obj.Draw();
     Light0.Render();
+=======
+    //my_obj.Draw();
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
     //my_obj.Draw();
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
