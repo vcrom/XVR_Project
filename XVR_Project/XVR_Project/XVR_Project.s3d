@@ -1,8 +1,12 @@
 /* Include s3d symbols */
 #include <Script3d.h>
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include <Camera.s3d.h>
 #include "spot_light.s3d"
+=======
+#include "Camera.s3d"
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
 #include "Camera.s3d"
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
@@ -25,14 +29,20 @@ var PosL = [0.0, 10.0, 10.0];	// default light position
 function DrawTerrain();
 function build_wall_list();
 function build_floor_list();
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 /* Other globals */
 var map = "map.txt";
 var crate = "crate.jpg";
 var wall = "wall.png";
 var grass = "grass.png";
 var mesh_src = "object.aam";
+<<<<<<< HEAD
 <<<<<<< HEAD
 var light_mesh = "lamp.AAM";
 
@@ -44,6 +54,8 @@ function OnDownload()
 	FileDownload(light_mesh);
 	
 }
+=======
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 
@@ -94,6 +106,22 @@ function OnInit(params) {
 	build_wall_list();
 	build_floor_list();
 	
+<<<<<<< HEAD
+=======
+	var tmp = LoadFile(map);
+   	height = array(0);
+   	for (var i = 0; i < Len(tmp); ++i) {
+   		var line = Split(tmp[i], " ");
+   		aadd(height, line);
+   	}
+   	
+	wall_texture = CVmTexture(wall);
+	grass_texture = CVmTexture(grass);
+	
+	build_wall_list();
+	build_floor_list();
+	
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 	var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
    	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
    	m_mesh.Normalize(10); 
@@ -123,6 +151,7 @@ function OnFrame() {
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	SetActiveTexture(my_texture_foo); 
       glEnable(GL_TEXTURE_2D);
       glBegin(GL_QUADS);
@@ -140,6 +169,9 @@ function OnFrame() {
     glPolygonOffset(1.5, 2);
     my_obj.Draw();
     Light0.Render();
+=======
+    //my_obj.Draw();
+>>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
 =======
     //my_obj.Draw();
 >>>>>>> 5eed2942e963f2cdbd97db0c29244edae92388f7
