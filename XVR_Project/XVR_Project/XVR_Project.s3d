@@ -1,6 +1,6 @@
 /* Include s3d symbols */
 #include <Script3d.h>
-#include <Camera.s3d.h>
+//#include <Camera.s3d.h>
 #include "spot_light.s3d"
 
 #include "Camera.s3d"
@@ -89,25 +89,14 @@ function OnInit(params) {
 	
 	build_wall_list();
 	build_floor_list();
-
-	var tmp = LoadFile(map);
-   	height = array(0);
-   	for (var i = 0; i < Len(tmp); ++i) {
-   		var line = Split(tmp[i], " ");
-   		aadd(height, line);
-   	}
-   	
-	wall_texture = CVmTexture(wall);
-	grass_texture = CVmTexture(grass);
 	
-	build_wall_list();
-	build_floor_list();
-	
+	/*
 	var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
    	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
    	m_mesh.Normalize(10); 
    	global my_obj = CVmObj(m_mesh);
    	my_obj.SetPosition(Lpo[0], Lpo[1], Lpo[2]+10);
+   	*/
 }
 
 
