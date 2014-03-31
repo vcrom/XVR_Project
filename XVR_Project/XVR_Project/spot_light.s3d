@@ -2,6 +2,7 @@
 #define _DIR_LIGHT_
 
 static var DEG_TO_RAD = 3.14/180;
+static var RAD_TO_DEG = 180/3.14;
 
 class  SpotlLight {
 	var light;
@@ -33,10 +34,10 @@ function SpotlLight::Initialize(pos)
 	light.SetAmbient([0.8, 0.8, 0.8]);
 	light.SetDiffuse([0.7, 0.7, 0.7]);
 	light.SetSpecular([0.9, 0.9, 0.9]);
-	light.SetDirection(0,0,1);
+	//light.SetDirection(0,0,1);
+	light.SetPosition(position);
+	light.SetSpotDirection([0,0,position[2]+1]);
 	//light.SetPosition(position);
-	//light.SetSpotDirection([0,0,position[2]+1]);
-	light.SetSpotDirection(0,0,60);
 	light.SetParameter(GL_SPOT_EXPONENT, 45);
 	light.SetParameter(GL_SPOT_CUTOFF, 100);
 	light.Enable();
@@ -46,7 +47,9 @@ function SpotlLight::SetRenderableObject(mesh)
 {
 	mesh.Normalize(2); 
 	mesh.CenterBoundingBox();
-	light_renderable_object = CVmObj(mesh);
+	//light_renderable_object = CVmObj(mesh);
+	light_renderable_object = CVmObj();
+	light_renderable_object.LinkToMesh(mesh);
 	
 	
 	var mat = CVmMaterial();
@@ -85,18 +88,18 @@ function SpotlLight::Update()
 	look_at_vector[2] = sin(pitch)*look_at_vector[1] + cos(pitch)*look_at_vector[2];
 	
 	//Update teh light itself
-	outputln("\nLook: ", look_at_vector);
-	outputln("\n L+ P: ", position[0]+look_at_vector[0]," ", position[1]+look_at_vector[1]," ", position[2]+look_at_vector[2]);
+	//outputln("\nLook: ", look_at_vector);
+	//outputln("\n L+ P: ", position[0]+look_at_vector[0]," ", position[1]+look_at_vector[1]," ", position[2]+look_at_vector[2]);
 	//light.SetSpotDirection(position[0]+2*look_at_vector[0], position[1]+2*look_at_vector[1], position[2]+2*look_at_vector[2]);	
 	//light.SetPosition(position);
-	light.SetDirection(look_at_vector);
+	//light.SetDirection(look_at_vector);
 	
 	//Update renderable obj
 	if(light_renderable_object != null) 
 	{
 		light_renderable_object.SetPosition(position);
-//		light_renderable_object.Rotate([1,0,0], pitch);
-//		light_renderable_object.Rotate([0,1,0], yaw);
+		light_renderable_object.SetRotation(pitch*RAD_TO_DEG, [1,0,0]);
+		light_renderable_object.SetRotation(yaw*RAD_TO_DEG, [0,1,0]);
 	}
 
 	
@@ -105,13 +108,13 @@ function SpotlLight::Update()
 function SpotlLight::Rotate(p, y) {
 	yaw = (yaw + y*DEG_TO_RAD);
 	pitch = (pitch + p*DEG_TO_RAD);
-	
+/* 	
 	if(light_renderable_object != null) 
 	{
-		outputln("\nRota");
 		light_renderable_object.Rotate(p, [1,0,0]);
 		light_renderable_object.Rotate(y, [0,1,0]);
 	}
+	*/
 	Update();
 }
 
