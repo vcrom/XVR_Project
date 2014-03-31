@@ -176,8 +176,7 @@ function ObjectToMouse(object)
 	var winx = Mouse.X+1;
 	var winy = viewport[3]-Mouse.Y;	
 	var aux = gluProject(object.GetPosition());
-	var p0 = gluUnProject([winx, winy, aux[2]]);	//  p0:	  vec0 in world coordinates	
-	//p0[2] = pInt[2];
+	var p0 = gluUnProject([winx, winy, aux[2]]);
 	trace(p0);
 
 	object.SetPosition(p0);
@@ -198,9 +197,10 @@ function DrawSelectableObjects()
 				selectabe_objects[i].ForceMaterial(selected_mat);
 				
 			}
-			else {
+		}
+		else 
+		{
 				selectabe_objects[i].ForceMaterial(unselected_mat);
-			}
 		}
 		selectabe_objects[i].Draw();
 	}
@@ -214,7 +214,7 @@ function OnFrame() {
 	
 	Light0.Rotate(0, 0.1);
 	Light0.Update();
-	//Light0.Render();
+	Light0.Render();
 	//DrawGrid([0.5, 0.5, 0.5], 100);
 	DrawTerrain();
 	DrawSelectableObjects();
