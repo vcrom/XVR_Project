@@ -214,7 +214,7 @@ function OnFrame() {
 	
 	Light0.Rotate(0, 0.1);
 	Light0.Update();
-	Light0.Render();
+	//Light0.Render();
 	//DrawGrid([0.5, 0.5, 0.5], 100);
 	DrawTerrain();
 	DrawSelectableObjects();
