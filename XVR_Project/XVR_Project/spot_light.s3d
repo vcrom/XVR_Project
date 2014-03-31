@@ -1,6 +1,8 @@
 #ifndef _DIR_LIGHT_
 #define _DIR_LIGHT_
 
+static var DEG_TO_RAD = 3.14/180;
+
 class  SpotlLight {
 	var light;
 	var pitch, yaw;
@@ -27,12 +29,17 @@ function SpotlLight::Initialize(pos)
 	position = pos;
 	light_renderable_object = null;
 	
+	
+	light.SetAmbient([0.8, 0.8, 0.8]);
+	light.SetDiffuse([0.7, 0.7, 0.7]);
+	light.SetSpecular([0.9, 0.9, 0.9]);
+	light.SetDirection(0,0,1);
+	//light.SetPosition(position);
+	//light.SetSpotDirection([0,0,position[2]+1]);
+	light.SetSpotDirection(0,0,60);
+	light.SetParameter(GL_SPOT_EXPONENT, 45);
+	light.SetParameter(GL_SPOT_CUTOFF, 100);
 	light.Enable();
-	light.SetAmbient([0.5, 0.5, 0.5]);
-	light.SetDiffuse([0.5, 0.5, 0.5]);
-	light.SetSpecular([0.5, 0.5, 0.5]);
-	light.SetPosition(position);
-	light.SetSpotDirection([0,0,1]); 
 }
 
 function SpotlLight::SetRenderableObject(mesh)
@@ -46,16 +53,21 @@ function SpotlLight::SetRenderableObject(mesh)
 	mat.Ambient = [1,0,0];
 	mat.Diffuse = [0,1,0];
 	
-	//light_renderable_object.ForceMaterial(mat, true); 	
-	var scale = light_renderable_object.GetScale();
+	//light_renderable_object.ForceMaterial(mat, true); 
 	
 	light_renderable_object.SetPosition(position);
 }
 
 function SpotlLight::Render() 
 {
+	//light.Enable();
+	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
 	if(light_renderable_object != null)
+	{
 		light_renderable_object.Draw();
+		//position[2] += 0.01;  
+	}
+	glPopAttrib();
 }
 
 function SpotlLight::Update()
@@ -73,19 +85,34 @@ function SpotlLight::Update()
 	look_at_vector[2] = sin(pitch)*look_at_vector[1] + cos(pitch)*look_at_vector[2];
 	
 	//Update teh light itself
-	light.SetSpotDirection(look_at_vector);	
+	outputln("\nLook: ", look_at_vector);
+	outputln("\n L+ P: ", position[0]+look_at_vector[0]," ", position[1]+look_at_vector[1]," ", position[2]+look_at_vector[2]);
+	//light.SetSpotDirection(position[0]+2*look_at_vector[0], position[1]+2*look_at_vector[1], position[2]+2*look_at_vector[2]);	
 	//light.SetPosition(position);
+	light.SetDirection(look_at_vector);
+	
+	//Update renderable obj
 	if(light_renderable_object != null) 
 	{
 		light_renderable_object.SetPosition(position);
-		light_renderable_object.Rotate([1,0,0], pitch);
-		light_renderable_object.Rotate([0,1,0], yaw);
+//		light_renderable_object.Rotate([1,0,0], pitch);
+//		light_renderable_object.Rotate([0,1,0], yaw);
 	}
+
+	
 } 
 
-function SpotlLight::Rotate(y, p) {
-	yaw = (yaw + y)%360;
-	pitch = (pitch + p)%360;
+function SpotlLight::Rotate(p, y) {
+	yaw = (yaw + y*DEG_TO_RAD);
+	pitch = (pitch + p*DEG_TO_RAD);
+	
+	if(light_renderable_object != null) 
+	{
+		outputln("\nRota");
+		light_renderable_object.Rotate(p, [1,0,0]);
+		light_renderable_object.Rotate(y, [0,1,0]);
+	}
+	Update();
 }
 
 #endif _DIR_LIGHT_
