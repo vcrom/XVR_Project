@@ -18,7 +18,8 @@ SET SCENE_FAR  = 1000;
 
 /* Light globals */
 var Light0; //spot light¿?
-var PosL = [0.0, 10.0, 10.0];	// default light position
+var PosL = [10.0, 10.0, -10.0];	// default light position
+var Sun;
 
 /* Function declarations */
 function DrawTerrain();
@@ -68,12 +69,15 @@ function OnInit(params) {
 	CameraInit();
 	
 	/* initialize light */
-	/*
-	Light0 = CVmLight();
-	Light0.SetPosition(PosL);
-	Light0.SetDiffuse(1, 1, 1);
-	Light0.Enable();
-	*/
+	
+	Sun = CVmLight();
+	Sun.SetPosition(PosL);
+	//Sun.SetAmbient([0.3, 0.3, 0]);
+	//Sun.SetDiffuse([0.7, 0.7, 0.9]);
+	//Sun.SetSpecular([0.9, 0.9, 0.9]);
+	//Sun.Enable();
+	
+	
 	Light0 = SpotlLight();
 	var Lpo = [4,2,4];
 	Light0.Initialize(Lpo);
@@ -111,9 +115,9 @@ function OnInit(params) {
    	selected_mat.shininess = 5;
    	
 	unselected_mat = CVmMaterial();
-   	unselected_mat.ambient   = [0.7, 0.7, 0.7, 1.0];
-   	unselected_mat.diffuse   = [0.8, 0.8, 0.8, 1.0];
-   	unselected_mat.specular  = [0.9, 0.9, 0.9, 1.0];
+   	unselected_mat.ambient   = [0.6, 0.6, 0.6, 1.0];
+   	unselected_mat.diffuse   = [0.7, 0.7, 0.7, 1.0];
+   	unselected_mat.specular  = [0.8, 0.8, 0.8, 1.0];
    	unselected_mat.shininess = 5;
    	
 	//Initialize selectable objects
@@ -143,8 +147,8 @@ function OnInit(params) {
 	//OpenGl Inits
 	glEnable(GL_BLEND);
 	glEnable(GL_NORMALIZE);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glEnable(GL_LIGHTING);
 	
 	
