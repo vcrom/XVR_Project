@@ -1,0 +1,143 @@
+#ifndef _SKY_BOX_
+#define _SKY_BOX_
+class SkyBox 
+{
+	var sky_textures;
+	var SCENE_FAR;
+	Initialize(textures, far);
+	Render(pos);
+};
+
+function SkyBox::Initialize(textures, far)
+{
+	sky_textures = textures;
+	SCENE_FAR = far;	
+}
+
+function SkyBox::Render(pos)
+{
+	//outputln("\nSky Render = ", pos);
+	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	glPushmatrix();
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+	//glScale(SCENE_FAR, SCENE_FAR, SCENE_FAR);
+	
+	//glTranslate(pos);
+	glTranslate(pos[0], 0, pos[2]);
+	glTranslate(-SCENE_FAR/2, -SCENE_FAR/2, -SCENE_FAR/2);
+	glScale(SCENE_FAR, SCENE_FAR, SCENE_FAR);
+	
+	//negx
+	SetActiveTexture(sky_textures[0], VR_BILINEAR_FILTER, 0);
+	glBegin(GL_QUADS);
+	glNormal(1,0,0);
+	
+	glTexCoord(0,1);
+	glVertex(0,0,0); 
+	
+	glTexCoord(0,0);
+	glVertex(0,1,0);
+	
+	glTexCoord(1,0);
+	glVertex(0,1,1);
+	
+	glTexCoord(1,1);
+	glVertex(0,0,1);
+	glEnd();
+	
+	//negy
+	SetActiveTexture(sky_textures[1], VR_BILINEAR_FILTER, 0);
+	glBegin(GL_QUADS);
+	glNormal(1,0,0);
+	
+	glTexCoord(1,1);
+	glVertex(0,0,0); 
+	
+	glTexCoord(1,0);
+	glVertex(0,0,1);
+	
+	glTexCoord(0,0);
+	glVertex(1,0,1);
+	
+	glTexCoord(0,1);
+	glVertex(1,0,0);
+	glEnd();
+	
+	//negz
+	SetActiveTexture(sky_textures[2], VR_BILINEAR_FILTER, 0);
+	glBegin(GL_QUADS);
+	glNormal(0,0,1);
+	
+	glTexCoord(1,1);
+	glVertex(0,0,0); 
+	
+	glTexCoord(0,1);
+	glVertex(1,0,0);
+	
+	glTexCoord(0,0);
+	glVertex(1,1,0);
+	
+	glTexCoord(1,0);
+	glVertex(0,1,0);
+	glEnd();
+	
+	//posx
+	SetActiveTexture(sky_textures[3], VR_BILINEAR_FILTER, 0);
+	glBegin(GL_QUADS);
+	glNormal(-1,0,0);
+	
+	glTexCoord(0,0);
+	glVertex(1,1,1); 
+	
+	glTexCoord(1,0);
+	glVertex(1,1,0);
+	
+	glTexCoord(1,1);
+	glVertex(1,0,0);
+	
+	glTexCoord(0,1);
+	glVertex(1,0,1);
+	glEnd();
+	
+	//posy
+	SetActiveTexture(sky_textures[4], VR_BILINEAR_FILTER, 0);
+	glBegin(GL_QUADS);
+	glNormal(0,-1,0);
+	
+	glTexCoord(1,1);
+	glVertex(1,1,1); 
+	
+	glTexCoord(0,1);
+	glVertex(0,1,1);
+	
+	glTexCoord(0,0);
+	glVertex(0,1,0);
+	
+	glTexCoord(1,0);
+	glVertex(1,1,0);
+	glEnd();
+	
+	//posz
+	SetActiveTexture(sky_textures[5], VR_BILINEAR_FILTER, 0);
+	glBegin(GL_QUADS);
+	glNormal(0,0,-1);
+	
+	glTexCoord(1,0);
+	glVertex(1,1,1); 
+	
+	glTexCoord(1,1);
+	glVertex(1,0,1);
+	
+	glTexCoord(0,1);
+	glVertex(0,0,1);
+	
+	glTexCoord(0,0);
+	glVertex(0,1,1);
+	glEnd();
+	
+	
+	glPopMatrix();
+	glPopAttrib();
+}
+#endif _SKY_BOX_

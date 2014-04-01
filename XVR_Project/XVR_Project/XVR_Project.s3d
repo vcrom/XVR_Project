@@ -4,6 +4,7 @@
 #include "spot_light.s3d"
 
 #include "Camera.s3d"
+#include "SkyBox.s3d"
 //#include "sys_camera.s3d"
 
 /* Set global scene parameters */
@@ -16,7 +17,7 @@ SET SCENE_FAR  = 1000;
 
 
 /* Light globals */
-var Light0;
+var Light0; //spot light¿?
 var PosL = [0.0, 10.0, 10.0];	// default light position
 
 /* Function declarations */
@@ -32,16 +33,8 @@ var grass = "grass.png";
 var mesh_src = "object.aam";
 
 var light_mesh = "lamp.AAM";
-/*
-function OnDownload()
-{
-	FileDownload(file_name);
-	FileDownload(text_src);
-	FileDownload(mesh_src);
-	FileDownload(light_mesh);
-	
-}*/
 
+//Terrain
 var wall_texture;
 var grass_texture;
 
@@ -50,13 +43,19 @@ var floor_list;
 
 var height;
 
-
+//Selecction
 var selectabe_objects;
 var selected_mat;
 var unselected_mat;
 
+//Skybox
+var skybox_files = {"skybox\\negx.png", "skybox\\negy.png", "skybox\\negz.png", "skybox\\posx.png", "skybox\\posy.png", "skybox\\posz.png"};
+var sky_box;
+
 function OnDownload() {
 	FileDownload(light_mesh);
+	for(var i = 0; i < Len(skybox_files); ++i)
+		FileDownload(skybox_files[i]);
 	
 	FileDownload(map);
 	FileDownload(mesh_src);
@@ -134,12 +133,18 @@ function OnInit(params) {
 	sphere2.ForceMaterial(unselected_mat);
 	aadd( selectabe_objects, sphere2);
 
+	//Skybox Init
+	var sky_textures = Array(Len(skybox_files));
+	for(var i = 0; i < Len(sky_textures); ++i)
+		sky_textures[i] = CVmTexture(skybox_files[i]);
+	sky_box = SkyBox();
+	sky_box.Initialize(sky_textures, SCENE_FAR);
 	
 	//OpenGl Inits
 	glEnable(GL_BLEND);
 	glEnable(GL_NORMALIZE);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	glEnable(GL_LIGHTING);
 	
 	
@@ -150,7 +155,6 @@ function OnInit(params) {
    	//my_obj.SetPosition(Lpo[0], Lpo[1], Lpo[2]+10);
    	
 }
-
 
 function IsSelected(object) 
 {
@@ -215,6 +219,7 @@ function OnFrame() {
 	Light0.Rotate(0, 0.1);
 	Light0.Update();
 	Light0.Render();
+	sky_box.Render(CameraGetPosition());
 	//DrawGrid([0.5, 0.5, 0.5], 100);
 	DrawTerrain();
 	DrawSelectableObjects();
@@ -227,8 +232,8 @@ function OnFrame() {
 		//ConsoleText(0.01,0.86,file_string[0]);
 	//}
 	
-	
-	SetActiveTexture(my_texture_foo); 
+
+	SetActiveTexture(CVmTexture("wall.png")); 
       glEnable(GL_TEXTURE_2D);
       glBegin(GL_QUADS);
          glNormal(0,0,1);      
@@ -290,7 +295,7 @@ function DrawTerrain() {
 	
 	SetActiveTexture(wall_texture, VR_FORCE_TEXTURE, 0);
 	glCallList(wall_list);
-	
+	glDisable(GL_TEXTURE_2D);
 	/* polite restoration of previous OpenGL status */
 	glPopAttrib();
 }

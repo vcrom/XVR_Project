@@ -1,5 +1,5 @@
-#ifndef _DIR_LIGHT_
-#define _DIR_LIGHT_
+#ifndef _SPOT_LIGHT_
+#define _SPOT_LIGHT_
 
 static var DEG_TO_RAD = 3.14/180;
 static var RAD_TO_DEG = 180/3.14;
@@ -118,4 +118,4 @@ function SpotlLight::Rotate(p, y) {
 	Update();
 }
 
-#endif _DIR_LIGHT_
+#endif _SPOT_LIGHT_
