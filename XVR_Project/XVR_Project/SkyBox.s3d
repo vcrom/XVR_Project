@@ -16,14 +16,10 @@ function SkyBox::Initialize(textures, far)
 
 function SkyBox::Render(pos)
 {
-	//outputln("\nSky Render = ", pos);
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
 	glPushmatrix();
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
-	//glScale(SCENE_FAR, SCENE_FAR, SCENE_FAR);
-	
-	//glTranslate(pos);
 	glTranslate(pos[0], 0, pos[2]);
 	glTranslate(-SCENE_FAR/2, -SCENE_FAR/2, -SCENE_FAR/2);
 	glScale(SCENE_FAR, SCENE_FAR, SCENE_FAR);
@@ -51,16 +47,16 @@ function SkyBox::Render(pos)
 	glBegin(GL_QUADS);
 	glNormal(1,0,0);
 	
-	glTexCoord(1,1);
+	glTexCoord(0,1);
 	glVertex(0,0,0); 
 	
-	glTexCoord(1,0);
+	glTexCoord(0,0);
 	glVertex(0,0,1);
 	
-	glTexCoord(0,0);
+	glTexCoord(1,0);
 	glVertex(1,0,1);
 	
-	glTexCoord(0,1);
+	glTexCoord(1,1);
 	glVertex(1,0,0);
 	glEnd();
 	
@@ -135,7 +131,6 @@ function SkyBox::Render(pos)
 	glTexCoord(0,0);
 	glVertex(0,1,1);
 	glEnd();
-	
 	
 	glPopMatrix();
 	glPopAttrib();

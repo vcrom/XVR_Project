@@ -18,7 +18,7 @@ SET SCENE_FAR  = 1000;
 
 /* Light globals */
 var Light0; //spot light¿?
-var PosL = [10.0, 10.0, -10.0];	// default light position
+var PosL = [SCENE_FAR/2, SCENE_FAR/2, -SCENE_FAR/2];	// default light position
 var Sun;
 
 /* Function declarations */
@@ -69,7 +69,6 @@ function OnInit(params) {
 	CameraInit();
 	
 	/* initialize light */
-	
 	Sun = CVmLight();
 	Sun.SetPosition(PosL);
 	//Sun.SetAmbient([0.3, 0.3, 0]);
@@ -82,16 +81,9 @@ function OnInit(params) {
 	var Lpo = [4,2,4];
 	Light0.Initialize(Lpo);
 	var l_mesh = CVmNewMesh(light_mesh);
-	Light0.SetRenderableObject(l_mesh);//CVmObj(l_mesh));
+	Light0.SetRenderableObject(l_mesh);
 	Light0.Update();
-/*
-	var my_light = CVmLight();
-  	 my_light.SetDiffuse(1,1,1);
-   	my_light.SetAmbient(1,1,1);
-   	my_light.SetSpecular(0,0,0);
-   my_light.SetPosition(5,5,5);
-   my_light.Enable();
-*/	
+	
 	var tmp = LoadFile(map);
    	height = array(0);
    	for (var i = 0; i < Len(tmp); ++i) {
@@ -104,8 +96,6 @@ function OnInit(params) {
 	
 	build_wall_list();
 	build_floor_list();
-	
-	
 	
 	//Initialize selecction Mats
 	selected_mat = CVmMaterial();
@@ -126,14 +116,12 @@ function OnInit(params) {
 	var hemisphere = 1;  //0.5= hemisphere, 1= sphere
 	var sphere_mesh = CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere);  
 	var sphere = CVmObj(sphere_mesh);
-	//sphere.LinkToMesh(sphere_mesh);
 	sphere.SetPosition([5,2,5]);
 	sphere.ForceMaterial(unselected_mat);
 	selectabe_objects = {sphere};
 	
 	var sphere2 = CVmObj(CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere));
 	sphere2.SetPosition([5,4,5]);
-	//selectabe_objects[1] = sphere2;
 	sphere2.ForceMaterial(unselected_mat);
 	aadd( selectabe_objects, sphere2);
 
@@ -151,7 +139,6 @@ function OnInit(params) {
 	glCullFace(GL_BACK);
 	glEnable(GL_LIGHTING);
 	
-	
 	//var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
    	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
    	//m_mesh.Normalize(10); 
@@ -167,10 +154,10 @@ function IsSelected(object)
 	var winy = viewport[3]-Mouse.Y;
 	var point1=gluUnproject(winx,winy,0.0); 
 	var point2=gluUnproject(winx,winy,1.0) * SCENE_FAR;
-	var pInt=[0,0,0];  //Will store the closest intersection point (to point1)
-	var nrml=[0,0,0];  //Will store the normal on that point
-	var n_TR = 0; //Will store the triangle index
-	var comp = 0; //Will store the component (Characters)
+	var pInt=[0,0,0];  	//Will store the closest intersection point (to point1)
+	var nrml=[0,0,0];  	//Will store the normal on that point
+	var n_TR = 0; 		//Will store the triangle index
+	var comp = 0; 		//Will store the component (Characters)
 	if (object.IsColliding(point1,point2,&pInt, &nrml, &n_TR, &comp, true, true))
 	{
 		return true;
