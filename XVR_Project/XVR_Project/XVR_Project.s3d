@@ -26,6 +26,8 @@ var crate = "crate.jpg";
 var mesh_src = "object.aam";
 
 var light_mesh = "lamp.AAM";
+var castle_mesh = "castle.AAM";
+var castle;
 
 //Selecction
 var selectabe_objects;
