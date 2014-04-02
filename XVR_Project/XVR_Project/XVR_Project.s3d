@@ -34,6 +34,8 @@ var grass = "grass.png";
 var mesh_src = "object.aam";
 
 var light_mesh = "lamp.AAM";
+var castle_mesh = "castle.AAM";
+var castle;
 
 //Terrain
 var wall_texture;
