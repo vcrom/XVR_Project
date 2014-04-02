@@ -1,11 +1,15 @@
 #include <Script3d.h>
 #include <Camera.s3d.h>
 
+static var InMouseR = false, InMouseL = false;				
+static var PrecX = 0, PrecY = 0;
+
 var camera_position = [0.0, 4.0, 0.0];
 var camera_rotation_y = 135;
 var camera_rotation_xz = 0;
 
-function CameraInit() {
+function CameraInit(height) {
+	camera_position[1] = val(height[camera_position[0]*2][camera_position[2]*2])+4.0;
 	CameraGetCurrent().SetPosition(camera_position);
 	CameraGetCurrent().SetRotation(camera_rotation_y, 0.0, 1.0, 0.0);
 } 
@@ -18,10 +22,12 @@ function check_out_of_limits(pos, limit) {
 	return pos;
 }
 
+function CameraStandBy() {
+	PrecY = Mouse.y;
+	PrecX = Mouse.x;
+}
+
 function CameraMoveMouse(height) {
-	static var InMouseR = false, InMouseL = false;				
-	static var PrecX = 0, PrecY = 0;
-			
 	// Change these values to modify the mouse sensitivity
 	var TR_SENSITIVITY  = 0.001;
 	var ROT_SENSITIVITY = 0.01;
@@ -41,21 +47,28 @@ function CameraMoveMouse(height) {
 		
 		InMouseL = true;
 		InMouseR = false;
-	} else if (Mouse.ButtonR) {
+	} else if (Mouse.ButtonR && !Mouse.ButtonL) {
 		//====  Right Button: Camera translation  ====//
 		if (InMouseR) {
 			var CameraMatrix = CameraGetMatrix();
+
+			var new_camera_x = 0;
+			var new_camera_z = 0;
 			
-			if (!Mouse.ButtonL) {
-				camera_position[0] -= (Mouse.y-PrecY)*TR_SENSITIVITY*cos((90-camera_rotation_y)*0.0174532925);
-				camera_position[2] += (Mouse.y-PrecY)*TR_SENSITIVITY*cos(camera_rotation_y*0.0174532925);
+			new_camera_x = camera_position[0] - (Mouse.y-PrecY)*TR_SENSITIVITY*cos((90-camera_rotation_y)*0.0174532925);
+			new_camera_z = camera_position[2] + (Mouse.y-PrecY)*TR_SENSITIVITY*cos(camera_rotation_y*0.0174532925);		
+			
+			new_camera_x = check_out_of_limits(new_camera_x, Len(height)*2);
+			new_camera_z = check_out_of_limits(new_camera_z, Len(height[0])*2);
+			
+			var new_camera_y = val(height[new_camera_x*2][new_camera_z*2])+4.0;
+			
+			if (abs(camera_position[1] - new_camera_y) < 2) {
+				camera_position[0] = new_camera_x;
+				camera_position[1] = new_camera_y;
+				camera_position[2] = new_camera_z;
 			}
 			
-			camera_position[0] = check_out_of_limits(camera_position[0], Len(height)*2);
-			camera_position[2] = check_out_of_limits(camera_position[2], Len(height[0])*2);
-			
-			outputln(camera_position[0]/2, camera_position[2]/2);
-			camera_position[1] = val(height[camera_position[0]/2][camera_position[2]/2])+4.0;
 			CameraSetPosition(camera_position);		
 		} else {
 			PrecX = Mouse.X;

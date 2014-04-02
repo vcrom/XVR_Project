@@ -1,11 +1,10 @@
 /* Include s3d symbols */
 #include <Script3d.h>
-//#include <Camera.s3d.h>
-#include "spot_light.s3d"
+#include "SpotLight.s3d"
 
 #include "Camera.s3d"
 #include "SkyBox.s3d"
-//#include "sys_camera.s3d"
+#include "Terrain.s3d"
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
@@ -21,37 +20,31 @@ var Light0; //spot light¿?
 var PosL = [SCENE_FAR/2, SCENE_FAR/2, -SCENE_FAR/2];	// default light position
 var Sun;
 
-/* Function declarations */
-function DrawTerrain();
-function build_wall_list();
-function build_floor_list();
-
 /* Other globals */
 var map = "map.txt";
 var crate = "crate.jpg";
-var wall = "wall.png";
-var grass = "grass.png";
 var mesh_src = "object.aam";
 
 var light_mesh = "lamp.AAM";
 
-//Terrain
-var wall_texture;
-var grass_texture;
-
-var wall_list;
-var floor_list;
-
-var height;
-
 //Selecction
 var selectabe_objects;
+var selected;
+var scaling;
 var selected_mat;
 var unselected_mat;
+var onMouseL;
+var onMouseR;
 
 //Skybox
 var skybox_files = {"skybox\\negx.png", "skybox\\negy.png", "skybox\\negz.png", "skybox\\posx.png", "skybox\\posy.png", "skybox\\posz.png"};
 var sky_box;
+
+//Terrain
+var wall = "wall.png";
+var grass = "grass.png";
+var height;
+var renderable_terrain;
 
 function OnDownload() {
 	FileDownload(light_mesh);
@@ -66,8 +59,7 @@ function OnDownload() {
 }
 
 function OnInit(params) {
-	CameraInit();
-	
+	outputln();
 	/* initialize light */
 	Sun = CVmLight();
 	Sun.SetPosition(PosL);
@@ -76,7 +68,6 @@ function OnInit(params) {
 	//Sun.SetSpecular([0.9, 0.9, 0.9]);
 	//Sun.Enable();
 	
-	
 	Light0 = SpotlLight();
 	var Lpo = [4,2,4];
 	Light0.Initialize(Lpo);
@@ -84,19 +75,8 @@ function OnInit(params) {
 	Light0.SetRenderableObject(l_mesh);
 	Light0.Update();
 	
-	var tmp = LoadFile(map);
-   	height = array(0);
-   	for (var i = 0; i < Len(tmp); ++i) {
-   		var line = Split(tmp[i], " ");
-   		aadd(height, line);
-   	}
-   	
-	wall_texture = CVmTexture(wall);
-	grass_texture = CVmTexture(grass);
-	
-	build_wall_list();
-	build_floor_list();
-	
+	outputln("Sun initialized!");
+
 	//Initialize selecction Mats
 	selected_mat = CVmMaterial();
    	selected_mat.ambient   = [0.7, 0.0, 0.0, 1.0];
@@ -114,24 +94,53 @@ function OnInit(params) {
 	var num_seg = 30;
 	var radius = 1;
 	var hemisphere = 1;  //0.5= hemisphere, 1= sphere
+	onMouseL = false;
+	selected = array(0);
+	scaling = array(0);
+	selectabe_objects = array(0);
+	
 	var sphere_mesh = CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere);  
 	var sphere = CVmObj(sphere_mesh);
 	sphere.SetPosition([5,2,5]);
 	sphere.ForceMaterial(unselected_mat);
-	selectabe_objects = {sphere};
+	aadd( selectabe_objects, sphere);
+	aadd( selected, false );
+	aadd( scaling, 1.0 );
 	
 	var sphere2 = CVmObj(CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere));
 	sphere2.SetPosition([5,4,5]);
 	sphere2.ForceMaterial(unselected_mat);
 	aadd( selectabe_objects, sphere2);
-
+	aadd( selected, false );
+	aadd( scaling, 1.0 );
+	
+	outputln("Objects initialized!");
+	
 	//Skybox Init
 	var sky_textures = Array(Len(skybox_files));
 	for(var i = 0; i < Len(sky_textures); ++i)
 		sky_textures[i] = CVmTexture(skybox_files[i]);
 	sky_box = SkyBox();
 	sky_box.Initialize(sky_textures, SCENE_FAR);
+	outputln("Skybox initialized!");
 	
+	//Terrain
+	var tmp = LoadFile(map);
+   	height = array(0);
+   	for (var i = 0; i < Len(tmp); ++i) {
+   		var line = Split(tmp[i], " ");
+   		aadd(height, line);
+   	}
+   	
+	var wall_texture = CVmTexture(wall);
+	var grass_texture = CVmTexture(grass);
+	
+	renderable_terrain = Terrain();
+	renderable_terrain.Initialize(height, grass_texture, wall_texture);
+	outputln("Terrain initialized!");
+	
+	CameraInit(height);
+	outputln("Camera initialized!");
 	//OpenGl Inits
 	glEnable(GL_BLEND);
 	glEnable(GL_NORMALIZE);
@@ -165,45 +174,94 @@ function IsSelected(object)
 	return false;
 }
 
-function ObjectToMouse(object) 
-{
+function ObjectToMouse(index) {
 	var viewport = glGet(GL_VIEWPORT);
 	var winx = Mouse.X+1;
 	var winy = viewport[3]-Mouse.Y;	
-	var aux = gluProject(object.GetPosition());
-	var p0 = gluUnProject([winx, winy, aux[2]]);
+	var aux = gluProject(selectabe_objects[index].GetPosition());
+	var p0 = gluUnProject([winx, winy, aux[2] + Mouse.Wheel*0.001]);
 	trace(p0);
-
-	object.SetPosition(p0);
+	
+	if (p0[0] == check_out_of_limits(p0[0], Len(height)/2) &&
+		p0[2] == check_out_of_limits(p0[2], Len(height[0])/2)) {
+	
+		if (p0[1] > val(height[p0[0]*2][p0[2]*2]) + scaling[index])
+			selectabe_objects[index].SetPosition(p0);
+	}
 }
 
-function DrawSelectableObjects() 
-{
+function ScaleObject(index) {
+	scaling[index] *= (1 + Mouse.Wheel*0.01);
+	if (scaling[index] > 2)
+	 	scaling[index] = 2;
+	else if (scaling[index] < 1)
+		scaling[index] = 1;
+	selectabe_objects[index].SetScale(scaling[index]);	
+}
+
+function ScaleObjectTo1Or2(index) {
+	if (scaling[index] >= 1.5)
+		scaling[index] = 2;
+	else if (scaling[index] < 1.5) 
+		scaling[index] = 1;
+	selectabe_objects[index].SetScale(scaling[index]);	
+}
+
+function DrawSelectableObjects() {
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
-	var already_sel = false;
-	for(var i = 0; i < Len(selectabe_objects); ++i)
-	{
-		if(Mouse.ButtonL)
-		{
-			if(!already_sel && IsSelected(selectabe_objects[i])) {
-				already_sel = true;
-				outputln("\nSelected ", i);
-				ObjectToMouse(selectabe_objects[i]);
-				selectabe_objects[i].ForceMaterial(selected_mat);
-				
-			}
-		}
-		else 
-		{
-				selectabe_objects[i].ForceMaterial(unselected_mat);
-		}
+	for(var i = 0; i < Len(selectabe_objects); ++i) {
 		selectabe_objects[i].Draw();
 	}
 	glPopAttrib();	
 }
+
+function UpdateSelectableObjects() {
+	var already_selected = false;
+	for(var i = 0; i < Len(selectabe_objects); ++i) {
+		if(Mouse.ButtonL && !onMouseL) {
+			if(!already_selected && IsSelected(selectabe_objects[i])) {
+				outputln(Mouse.Wheel); //IMPORTANT, DO NOT DELETE
+				selected[i] = !selected[i];
+			} else {
+				selected[i] = false;
+			}
+		}
+	}
+	
+	if(Mouse.ButtonL) {
+		onMouseL = true;
+	} else {
+		onMouseL = false;
+	}
+	
+	for(var i = 0; i < Len(selectabe_objects); ++i) {
+		if (selected[i]) {
+			selectabe_objects[i].ForceMaterial(selected_mat);
+			if (!Mouse.ButtonR) {
+				ObjectToMouse(i);
+				ScaleObjectTo1Or2(i);
+			} else {
+				ScaleObject(i);
+			}
+		} else {
+			selectabe_objects[i].ForceMaterial(unselected_mat);
+		}
+	}
+}
+
+function isAnyObjectSelected() {
+	for(var i = 0; i < Len(selectabe_objects); ++i)
+		if(selected[i]) 
+			return true;
+	return false;
+}
+
 function OnFrame() {
 	/* manage camera */
-	CameraMoveMouse(height);
+	if (!isAnyObjectSelected())
+		CameraMoveMouse(height);
+	else
+		CameraStandBy();
 
 	SceneBegin();
 	
@@ -212,36 +270,11 @@ function OnFrame() {
 	Light0.Render();
 	sky_box.Render(CameraGetPosition());
 	//DrawGrid([0.5, 0.5, 0.5], 100);
-	DrawTerrain();
+	renderable_terrain.DrawTerrain();
+	
+	UpdateSelectableObjects();
 	DrawSelectableObjects();
 	
-
-/*
-	//if(FileExists(map)) {
-		//var file_string = LoadFile(map);
-		//var file_string = FileRead(map);
-		//ConsoleText(0.01,0.86,file_string[0]);
-	//}
-	
-
-	SetActiveTexture(CVmTexture("wall.png")); 
-      glEnable(GL_TEXTURE_2D);
-      glBegin(GL_QUADS);
-         glNormal(0,0,1);      
-         glTexCoord(0,1); 
-         glVertex(0,0,0);         
-         glTexCoord(1,1);
-         glVertex(10,0,0);      
-         glTexCoord(1,0);
-         glVertex(10,10,0);      
-         glTexCoord(0,0);
-         glVertex(0,10,0);      
-      glEnd(); 
-      
-    glPolygonOffset(1.5, 2);
-    my_obj.Draw();
-*/
-
 	SceneEnd();
 }
 
@@ -274,101 +307,3 @@ function OnExit()
 }
 
 
-function DrawTerrain() {
-	/* let's not mess up current OpenGL status */
-	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
-	
-	//glDisable(GL_LIGHTING);
-
-	glEnable(GL_TEXTURE_2D);
-	SetActiveTexture(grass_texture, VR_BILINEAR_FILTER, 0);
-	glCallList(floor_list);
-	
-	SetActiveTexture(wall_texture, VR_FORCE_TEXTURE, 0);
-	glCallList(wall_list);
-	glDisable(GL_TEXTURE_2D);
-	/* polite restoration of previous OpenGL status */
-	glPopAttrib();
-}
-
-
-function build_floor_list() {
-	var multiplier = 2.0;
-
-	floor_list = glGenLists(1);
-	glNewList(floor_list, GL_COMPILE);
-	glBegin(GL_TRIANGLES);
-		for (var i = 0; i < Len(height); ++i) {
-			for (var j = 0; j < Len(height[i]); ++j) {
-				glNormal(0,1,0);
-				glTexCoord(0,0); 
-				glVertex(multiplier*i,     val(height[i][j]), multiplier*j);
-				glTexCoord(0,1); 
-				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
-				glTexCoord(1,0); 
-				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
-				
-				glTexCoord(0,1); 
-				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
-				glTexCoord(1,1); 
-				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*(j+1));
-				glTexCoord(1,0); 
-				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
-			}
-		}
-	glEnd();
-	glEndList();
-	outputln("\nwall list = ", floor_list);
-}
-
-function build_wall_list() {
-	var multiplier = 2.0;
-	
-	wall_list = glGenLists(1);
-	glNewList(wall_list, GL_COMPILE);
-	glBegin(GL_TRIANGLES);
-		for (var i = 0; i < Len(height); ++i) {
-			for (var j = 1; j < Len(height[i]); ++j) {
-				if (height[i][j] != height[i][j-1]) {
-					var size = abs(val(height[i][j]) - val(height[i][j-1]))/multiplier; 
-					glTexCoord(1,0); 
-					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
-					glTexCoord(0,0); 
-					glVertex(multiplier*i,     val(height[i][j-1]), multiplier*j);
-					glTexCoord(0,size); 
-					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
-					
-					glTexCoord(1,0); 
-					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
-					glTexCoord(0,size); 
-					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
-					glTexCoord(1,size); 
-					glVertex(multiplier*(i+1), val(height[i][j]),   multiplier*j);
-				}
-			}
-		}
-		
-		for (var i = 1; i < Len(height); ++i) {
-			for (var j = 0; j < Len(height[i]); ++j) {
-				if (height[i][j] != height[i-1][j]) {
-					var size = abs(val(height[i][j]) - val(height[i-1][j]))/multiplier; 
-					glTexCoord(0,0); 
-					glVertex(multiplier*i, val(height[i-1][j]), multiplier*j);
-					glTexCoord(0,1); 
-					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
-					glTexCoord(size,0); 
-					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
-					
-					glTexCoord(size,0); 
-					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
-					glTexCoord(0,1); 
-					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
-					glTexCoord(size,1); 
-					glVertex(multiplier*i, val(height[i][j]),   multiplier*(j+1));
-				}
-			}
-		}
-	glEnd();
-	glEndList();
-	outputln("\nfloor list = ", wall_list);
-}

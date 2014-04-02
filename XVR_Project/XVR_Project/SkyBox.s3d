@@ -1,5 +1,6 @@
 #ifndef _SKY_BOX_
 #define _SKY_BOX_
+
 class SkyBox 
 {
 	var sky_textures;

@@ -1,0 +1,125 @@
+#ifndef _TERRAIN_
+#define _TERRAIN_
+
+class Terrain 
+{
+	var height;
+	var multiplier;
+	
+	var grass_texture;
+	var wall_texture;
+
+	var wall_list;
+	var floor_list;
+	
+	Initialize(h, g, w);
+	DrawTerrain();
+	build_floor_list();
+	build_wall_list();
+};
+
+function Terrain::DrawTerrain() {
+	/* let's not mess up current OpenGL status */
+	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	
+	//glDisable(GL_LIGHTING);
+
+	glEnable(GL_TEXTURE_2D);
+	SetActiveTexture(grass_texture, VR_BILINEAR_FILTER, 0);
+	glCallList(floor_list);
+	
+	SetActiveTexture(wall_texture, VR_FORCE_TEXTURE, 0);
+	glCallList(wall_list);
+	glDisable(GL_TEXTURE_2D);
+	/* polite restoration of previous OpenGL status */
+	glPopAttrib();
+}
+
+
+function Terrain::build_floor_list() {
+	floor_list = glGenLists(1);
+	glNewList(floor_list, GL_COMPILE);
+	glBegin(GL_TRIANGLES);
+		for (var i = 0; i < Len(height); ++i) {
+			for (var j = 0; j < Len(height[i]); ++j) {
+				glNormal(0,1,0);
+				glTexCoord(0,0); 
+				glVertex(multiplier*i,     val(height[i][j]), multiplier*j);
+				glTexCoord(0,1); 
+				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
+				glTexCoord(1,0); 
+				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
+				
+				glTexCoord(0,1); 
+				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
+				glTexCoord(1,1); 
+				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*(j+1));
+				glTexCoord(1,0); 
+				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
+			}
+		}
+	glEnd();
+	glEndList();
+}
+
+function Terrain::build_wall_list() {	
+	wall_list = glGenLists(1);
+	glNewList(wall_list, GL_COMPILE);
+	glBegin(GL_TRIANGLES);
+		for (var i = 0; i < Len(height); ++i) {
+			for (var j = 1; j < Len(height[i]); ++j) {
+				if (height[i][j] != height[i][j-1]) {
+					var size = abs(val(height[i][j]) - val(height[i][j-1]))/multiplier; 
+					glTexCoord(1,0); 
+					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
+					glTexCoord(0,0); 
+					glVertex(multiplier*i,     val(height[i][j-1]), multiplier*j);
+					glTexCoord(0,size); 
+					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
+					
+					glTexCoord(1,0); 
+					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
+					glTexCoord(0,size); 
+					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
+					glTexCoord(1,size); 
+					glVertex(multiplier*(i+1), val(height[i][j]),   multiplier*j);
+				}
+			}
+		}
+		
+		for (var i = 1; i < Len(height); ++i) {
+			for (var j = 0; j < Len(height[i]); ++j) {
+				if (height[i][j] != height[i-1][j]) {
+					var size = abs(val(height[i][j]) - val(height[i-1][j]))/multiplier; 
+					glTexCoord(0,0); 
+					glVertex(multiplier*i, val(height[i-1][j]), multiplier*j);
+					glTexCoord(0,1); 
+					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
+					glTexCoord(size,0); 
+					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
+					
+					glTexCoord(size,0); 
+					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
+					glTexCoord(0,1); 
+					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
+					glTexCoord(size,1); 
+					glVertex(multiplier*i, val(height[i][j]),   multiplier*(j+1));
+				}
+			}
+		}
+	glEnd();
+	glEndList();
+}
+
+function Terrain::Initialize(h, g, w) {
+	height = h;
+	multiplier = 0.5;
+	
+	grass_texture = g;
+	wall_texture = w;
+	
+	build_floor_list();
+	build_wall_list();
+}
+
+#endif _TERRAIN_
