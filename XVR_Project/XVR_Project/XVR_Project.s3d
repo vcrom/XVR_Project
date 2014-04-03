@@ -138,7 +138,14 @@ function OnInit(params) {
 	}
 	UpdateLightsofSelectable ();
 	
+	
 	//Holes virtual objects init
+	var aux_mat = CVmMaterial();
+   	aux_mat.ambient   = [0.4, 0.4, 0.4, 0.0];
+   	aux_mat.diffuse   = [0.6, 0.6, 0.6, 0.0];
+   	aux_mat.specular  = [0.8, 0.8, 0.8, 0.0];
+   	
+   	unselected_mat.shininess = 5;
 	var n_holes = Len(holes_position);
 	virtual_holes = array(n_holes);
 	for(var i = 0; i < n_holes; ++i)
@@ -147,7 +154,7 @@ function OnInit(params) {
 		box_mesh.CenterBoundingBox();
 		virtual_holes[i] = CVmObj(box_mesh);
 		virtual_holes[i].SetPosition(holes_position[i]);
-		virtual_holes[i].ForceMaterial(selected_mat);
+		virtual_holes[i].ForceMaterial(aux_mat);
 	}
 	 
 	outputln("Objects initialized!");
@@ -359,6 +366,17 @@ function isAnyObjectSelected() {
 	return false;
 }
 
+function RenderHoles() 
+{
+	//If it is not Rendered doesen't detect colisions
+	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	var n_holes = Len(holes_position);
+	for(var i = 0; i < n_holes; ++i)
+	{
+		virtual_holes[i].Draw(VR_WIREFRAME);
+	}
+	glPopAttrib();
+}
 function OnFrame() {
 	/* manage camera */
 	if (!isAnyObjectSelected())
@@ -374,15 +392,8 @@ function OnFrame() {
 	
 	UpdateSelectableObjects();
 	DrawSelectableObjects();
-	/*
-	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
-	var n_holes = Len(holes_position);
-	for(var i = 0; i < n_holes; ++i)
-	{
-		virtual_holes[i].Draw();
-	}
-	glPopAttrib();
-	*/	
+	RenderHoles();
+	
 	SceneEnd();
 }
 
