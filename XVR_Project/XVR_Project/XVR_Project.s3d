@@ -216,35 +216,37 @@ function UpdateLightsofSelectable ()
 
 function UpdateObjectsInHoles() 
 {
-	outputln(in_hole);
 	var n_selectable = Len(selectable_ini_position);
 	for(var i = 0; i < n_selectable; ++i)
 	{
 		var aux = false;
+		var correct = false;
 		for(var j = 0; j < n_selectable; ++j)
 		{
-			if(!aux &&  selectabe_objects[i].IsCollidingBBox(virtual_holes[j]))
+			if(!correct &&  selectabe_objects[i].IsCollidingBBox(virtual_holes[j]))
 			{
-				outputln( selectabe_objects[i].IsCollidingBBox(virtual_holes[j]));
 				aux = true;
 				if(i == j) 
 				{
+					correct = true;
 					if(!in_hole[i]) audio_sources[1].Play();
-					lights_of_selectable[i].SetDiffuse([0, 0.8, 0]);
-					lights_of_selectable[i].SetSpecular([0, 0.9, 0]);
 				}
-				else{
-					if(!in_hole[i]) audio_sources[0].Play();
-					
-				}
+				else if(!in_hole[i]) audio_sources[0].Play();
 			}
 		}
 		if(!in_hole[i] && aux) in_hole[i] = true;
 		if(in_hole[i] && !aux) in_hole[i] = false;
+		if(correct) 
+		{
+			lights_of_selectable[i].SetDiffuse([0, 0.8, 0]);
+			lights_of_selectable[i].SetSpecular([0, 0.9, 0]);
+		}
+		else
 		{
 			lights_of_selectable[i].SetDiffuse([0.8, 0, 0]);
 			lights_of_selectable[i].SetSpecular([0.9, 0, 0]);
 		}
+		
 	}
 }
 
