@@ -374,13 +374,15 @@ function OnFrame() {
 	
 	UpdateSelectableObjects();
 	DrawSelectableObjects();
+	/*
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
 	var n_holes = Len(holes_position);
 	for(var i = 0; i < n_holes; ++i)
 	{
 		virtual_holes[i].Draw();
 	}
-	glPopAttrib();	
+	glPopAttrib();
+	*/	
 	SceneEnd();
 }
 
