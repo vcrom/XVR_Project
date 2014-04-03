@@ -30,6 +30,7 @@ var castle_mesh = "castle.AAM";
 var castle;
 
 //Selecction
+set MAX_SEL_LENGTH = 10;
 var selectable_ini_position = {[30, 0, 23], [34, 0, 35], [27, 0, 41]};
 var holes_position = {[60, 3, 52], [2, 3, 62],  [3, 0, 11.5]};
 var virtual_holes;
@@ -221,6 +222,11 @@ function UpdateObjectsInHoles()
 	}
 }
 
+function length(vec) 
+{
+	return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+}
+
 function IsSelected(object) 
 {
 	var viewport = glGet(GL_VIEWPORT);
@@ -234,7 +240,8 @@ function IsSelected(object)
 	var comp = 0; 		//Will store the component (Characters)
 	if (object.IsColliding(point1,point2,&pInt, &nrml, &n_TR, &comp, true, true))
 	{
-		return true;
+		if(length([pInt[0] - point1[0], pInt[1] - point1[1], pInt[2] - point1[2]]) < MAX_SEL_LENGTH)
+			return true;
 	}
 	return false;
 }
