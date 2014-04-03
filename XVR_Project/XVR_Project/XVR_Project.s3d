@@ -65,13 +65,13 @@ function OnInit(params) {
 	/* initialize light */
 	Sun = CVmLight();
 	Sun.SetPosition(PosL);
-	//Sun.SetAmbient([0.3, 0.3, 0]);
-	//Sun.SetDiffuse([0.7, 0.7, 0.9]);
+	Sun.SetAmbient([0.8, 0.8, 0.8]);
+	Sun.SetDiffuse([0.7, 0.7, 0.9]);
 	//Sun.SetSpecular([0.9, 0.9, 0.9]);
-	//Sun.Enable();
+	Sun.Enable();
 	
 	Light0 = SpotlLight();
-	var Lpo = [4,2,4];
+	var Lpo = [10,2,10];
 	Light0.Initialize(Lpo);
 	var l_mesh = CVmNewMesh(light_mesh);
 	Light0.SetRenderableObject(l_mesh);
@@ -100,7 +100,7 @@ function OnInit(params) {
 	selected = array(0);
 	scaling = array(0);
 	selectabe_objects = array(0);
-	
+/*	
 	var sphere_mesh = CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere);  
 	var sphere = CVmObj(sphere_mesh);
 	sphere.SetPosition([5,2,5]);
@@ -108,11 +108,23 @@ function OnInit(params) {
 	aadd( selectabe_objects, sphere);
 	aadd( selected, false );
 	aadd( scaling, 1.0 );
-	
+*/	
 	var sphere2 = CVmObj(CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere));
 	sphere2.SetPosition([5,4,5]);
 	sphere2.ForceMaterial(unselected_mat);
 	aadd( selectabe_objects, sphere2);
+	aadd( selected, false );
+	aadd( scaling, 1.0 );
+	
+	num_seg = 0;
+	var min_corner = [0,0,0];
+	var max_corner = [1,1,1];
+	var box_mesh = CVmNewMesh(VRP_BOX, num_seg, min_corner, max_corner);
+	box_mesh.CenterBoundingBox();
+	var box = CVmObj();
+	box.LinkToMesh(box_mesh);
+	box.SetPosition([5,6,5]);
+	aadd( selectabe_objects, box);
 	aadd( selected, false );
 	aadd( scaling, 1.0 );
 	
@@ -267,8 +279,8 @@ function OnFrame() {
 
 	SceneBegin();
 	
-	Light0.Rotate(0, 0.1);
-	Light0.Update();
+	//Light0.Rotate(0, 0.1);
+	//Light0.Update();
 	Light0.Render();
 	sky_box.Render(CameraGetPosition());
 	//DrawGrid([0.5, 0.5, 0.5], 100);
