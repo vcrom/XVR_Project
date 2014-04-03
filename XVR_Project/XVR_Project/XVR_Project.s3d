@@ -293,7 +293,7 @@ function ObjectToMouse(index) {
 		p0[2] == check_out_of_limits(p0[2], Len(height[0])/2)) {
 		//outputln("P0", p0);
 		//outputln(val(height[p0[0]*2][p0[2]*2]) + scaling[index]/2);
-		if (p0[1] > val(height[p0[0]*2][p0[2]*2]) + scaling[index]/2)
+		if (p0[1] >= val(height[p0[0]*2][p0[2]*2]) + scaling[index])
 			selectabe_objects[index].SetPosition(p0);
 	}
 }
