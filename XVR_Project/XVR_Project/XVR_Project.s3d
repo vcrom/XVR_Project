@@ -1,6 +1,6 @@
 /* Include s3d symbols */
 #include <Script3d.h>
-#include "SpotLight.s3d"
+//#include "SpotLight.s3d"
 
 #include "Camera.s3d"
 #include "SkyBox.s3d"
@@ -16,7 +16,7 @@ SET SCENE_FAR  = 1000;
 
 
 /* Light globals */
-var Light0; //spot light¿?
+//var Light0; //spot light¿?
 var PosL = [SCENE_FAR/2, SCENE_FAR/2, -SCENE_FAR/2];	// default light position
 var Sun;
 
@@ -30,6 +30,9 @@ var castle_mesh = "castle.AAM";
 var castle;
 
 //Selecction
+var selectable_ini_position = {[30, 0, 23], [34, 0, 35], [27, 0, 41]};
+var holes_position = {[60, 6, 54], [3, 6, 60],  [3, 5, 11]};
+var lights_of_selectable;
 var selectabe_objects;
 var selected;
 var scaling;
@@ -60,73 +63,74 @@ function OnDownload() {
 	FileDownload(wall);
 }
 
+function UpdateLightsofSelectable ()
+{
+	var n_selectable = Len(selectable_ini_position);
+	for(var i = 0; i < n_selectable; ++i)
+	{
+		var pos = selectabe_objects[i].GetPosition();
+		pos[1] = pos[1] + scaling[i] + 2;
+		lights_of_selectable[i].SetPosition(pos);
+	}
+}
 function OnInit(params) {
 	outputln();
 	/* initialize light */
 	Sun = CVmLight();
 	Sun.SetPosition(PosL);
-	Sun.SetAmbient([0.8, 0.8, 0.8]);
-	Sun.SetDiffuse([0.7, 0.7, 0.9]);
-	//Sun.SetSpecular([0.9, 0.9, 0.9]);
+	Sun.SetAmbient([1, 1, 1]);
 	Sun.Enable();
-	
+/*
 	Light0 = SpotlLight();
 	var Lpo = [10,2,10];
 	Light0.Initialize(Lpo);
 	var l_mesh = CVmNewMesh(light_mesh);
 	Light0.SetRenderableObject(l_mesh);
 	Light0.Update();
-	
+*/	
 	outputln("Sun initialized!");
 
 	//Initialize selecction Mats
 	selected_mat = CVmMaterial();
-   	selected_mat.ambient   = [0.7, 0.0, 0.0, 1.0];
-   	selected_mat.diffuse   = [0.8, 1.0, 0.0, 1.0];
-   	selected_mat.specular  = [0.9, 0.9, 0.9, 1.0];
+   	selected_mat.ambient   = [0.6, 0.0, 0.0, 1.0];
+   	selected_mat.diffuse   = [0.7, 0.8, 0.0, 1.0];
+   	selected_mat.specular  = [0.8, 0.8, 0.8, 1.0];
    	selected_mat.shininess = 5;
    	
 	unselected_mat = CVmMaterial();
-   	unselected_mat.ambient   = [0.6, 0.6, 0.6, 1.0];
-   	unselected_mat.diffuse   = [0.7, 0.7, 0.7, 1.0];
+   	unselected_mat.ambient   = [0.4, 0.4, 0.4, 1.0];
+   	unselected_mat.diffuse   = [0.6, 0.6, 0.6, 1.0];
    	unselected_mat.specular  = [0.8, 0.8, 0.8, 1.0];
    	unselected_mat.shininess = 5;
    	
 	//Initialize selectable objects
-	var num_seg = 30;
-	var radius = 1;
-	var hemisphere = 1;  //0.5= hemisphere, 1= sphere
+	var n_selectable = Len(selectable_ini_position);
 	onMouseL = false;
-	selected = array(0);
-	scaling = array(0);
-	selectabe_objects = array(0);
-/*	
-	var sphere_mesh = CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere);  
-	var sphere = CVmObj(sphere_mesh);
-	sphere.SetPosition([5,2,5]);
-	sphere.ForceMaterial(unselected_mat);
-	aadd( selectabe_objects, sphere);
-	aadd( selected, false );
-	aadd( scaling, 1.0 );
-*/	
-	var sphere2 = CVmObj(CVmNewMesh(VRP_SPHERE , num_seg, radius, hemisphere));
-	sphere2.SetPosition([5,4,5]);
-	sphere2.ForceMaterial(unselected_mat);
-	aadd( selectabe_objects, sphere2);
-	aadd( selected, false );
-	aadd( scaling, 1.0 );
+	selected = array(n_selectable);
+	scaling = array(n_selectable);
+	selectabe_objects = array(n_selectable);
+	lights_of_selectable = array(n_selectable);
 	
-	num_seg = 0;
-	var min_corner = [0,0,0];
-	var max_corner = [1,1,1];
-	var box_mesh = CVmNewMesh(VRP_BOX, num_seg, min_corner, max_corner);
-	box_mesh.CenterBoundingBox();
-	var box = CVmObj();
-	box.LinkToMesh(box_mesh);
-	box.SetPosition([5,6,5]);
-	aadd( selectabe_objects, box);
-	aadd( selected, false );
-	aadd( scaling, 1.0 );
+	for(var i = 0; i < n_selectable; ++i)
+	{
+		var box_mesh = CVmNewMesh(VRP_BOX, 0, [0,0,0], [1,1,1]);
+		box_mesh.CenterBoundingBox();
+		selectabe_objects[i] = CVmObj(box_mesh);
+		selectabe_objects[i].SetPosition(selectable_ini_position[i]);
+		selectabe_objects[i].ForceMaterial(unselected_mat);
+		//Atributes
+		selected[i] = false;
+		scaling[i] = 1.0;
+		//Lights
+		lights_of_selectable[i] = CVmLight();
+		lights_of_selectable[i].SetPosition(selectable_ini_position[i]);
+		lights_of_selectable[i].SetDiffuse([0.8, 0, 0]);
+		lights_of_selectable[i].SetSpecular([0.9, 0, 0]);
+		lights_of_selectable[i].SetParameter(GL_LINEAR_ATTENUATION, 1);
+		lights_of_selectable[i].Enable();
+		
+	}
+	UpdateLightsofSelectable ();
 	
 	outputln("Objects initialized!");
 	
@@ -194,11 +198,11 @@ function ObjectToMouse(index) {
 	var winy = viewport[3]-Mouse.Y;	
 	var aux = gluProject(selectabe_objects[index].GetPosition());
 	var p0 = gluUnProject([winx, winy, aux[2] + Mouse.Wheel*0.001]);
-	trace(p0);
+	//trace(p0);
 	
 	if (p0[0] == check_out_of_limits(p0[0], Len(height)/2) &&
 		p0[2] == check_out_of_limits(p0[2], Len(height[0])/2)) {
-	
+		trace(p0);
 		if (p0[1] > val(height[p0[0]*2][p0[2]*2]) + scaling[index])
 			selectabe_objects[index].SetPosition(p0);
 	}
@@ -261,6 +265,7 @@ function UpdateSelectableObjects() {
 			selectabe_objects[i].ForceMaterial(unselected_mat);
 		}
 	}
+	UpdateLightsofSelectable ();
 }
 
 function isAnyObjectSelected() {
@@ -281,7 +286,7 @@ function OnFrame() {
 	
 	//Light0.Rotate(0, 0.1);
 	//Light0.Update();
-	Light0.Render();
+	//Light0.Render();
 	sky_box.Render(CameraGetPosition());
 	//DrawGrid([0.5, 0.5, 0.5], 100);
 	renderable_terrain.DrawTerrain();
