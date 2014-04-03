@@ -32,9 +32,6 @@ var castle;
 //Selecction
 set MAX_SEL_LENGTH = 10;
 var selectable_ini_position = {[30, 0, 23], [34, 0, 35], [27, 0, 41]};
-var holes_position = {[60, 3, 52], [2, 3, 62],  [3, 0, 11.5]};
-var virtual_holes;
-var in_hole;
 var lights_of_selectable;
 var selectabe_objects;
 var selected;
@@ -43,6 +40,13 @@ var selected_mat;
 var unselected_mat;
 var onMouseL;
 var onMouseR;
+
+//Holes
+var audio_files = {"sounds\\error.wav", "sounds\\correct.wav"};
+var audio_sources;
+var holes_position = {[60, 3, 52], [2, 3, 62],  [3, 0, 11.5]};
+var virtual_holes;
+var in_hole;
 
 //Skybox
 var skybox_files = {"skybox\\negx.png", "skybox\\negy.png", "skybox\\negz.png", "skybox\\posx.png", "skybox\\posy.png", "skybox\\posz.png"};
@@ -61,7 +65,10 @@ function OnDownload() {
 	FileDownload(light_mesh);
 	for(var i = 0; i < Len(skybox_files); ++i)
 		FileDownload(skybox_files[i]);
-	
+		
+	for(var i = 0; i < Len(audio_files); ++i)
+		FileDownload(audio_files[i]);
+		
 	FileDownload(map);
 	FileDownload(mesh_src);
 	
@@ -145,6 +152,17 @@ function OnInit(params) {
 	 
 	outputln("Objects initialized!");
 	
+	//Audio
+	var n_sounds = Len(audio_files);
+	audio_sources = array(n_sounds);
+	for(var i = 0; i < n_sounds; ++i)
+	{
+		var audio = CVmVRAWav();
+		audio_sources[i] = audio;
+		audio_sources[i].Load(audio_files[i], false);
+	}
+	
+	outputln("Audio initialized!");
 	//Skybox Init
 	var sky_textures = Array(Len(skybox_files));
 	for(var i = 0; i < Len(sky_textures); ++i)
@@ -198,23 +216,31 @@ function UpdateLightsofSelectable ()
 
 function UpdateObjectsInHoles() 
 {
+	outputln(in_hole);
 	var n_selectable = Len(selectable_ini_position);
 	for(var i = 0; i < n_selectable; ++i)
 	{
-		in_hole[i] = false;
+		var aux = false;
 		for(var j = 0; j < n_selectable; ++j)
 		{
-			if(!in_hole[i] && selectabe_objects[i].IsCollidingBBox(virtual_holes[j]))
+			if(!aux &&  selectabe_objects[i].IsCollidingBBox(virtual_holes[j]))
 			{
-				in_hole[i] = true;
+				outputln( selectabe_objects[i].IsCollidingBBox(virtual_holes[j]));
+				aux = true;
 				if(i == j) 
 				{
+					if(!in_hole[i]) audio_sources[1].Play();
 					lights_of_selectable[i].SetDiffuse([0, 0.8, 0]);
 					lights_of_selectable[i].SetSpecular([0, 0.9, 0]);
 				}
+				else{
+					if(!in_hole[i]) audio_sources[0].Play();
+					
+				}
 			}
 		}
-		if(!in_hole[i]) 
+		if(!in_hole[i] && aux) in_hole[i] = true;
+		if(in_hole[i] && !aux) in_hole[i] = false;
 		{
 			lights_of_selectable[i].SetDiffuse([0.8, 0, 0]);
 			lights_of_selectable[i].SetSpecular([0.9, 0, 0]);
