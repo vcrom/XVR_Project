@@ -5,6 +5,7 @@ class Terrain
 {
 	var height;
 	var multiplier;
+	var texture_resolution;
 	
 	var grass_texture;
 	var wall_texture;
@@ -37,24 +38,30 @@ function Terrain::DrawTerrain() {
 
 
 function Terrain::build_floor_list() {
+
 	floor_list = glGenLists(1);
 	glNewList(floor_list, GL_COMPILE);
 	glBegin(GL_TRIANGLES);
 		for (var i = 0; i < Len(height); ++i) {
-			for (var j = 0; j < Len(height[i]); ++j) {
+			for (var j = 0; j < Len(height[i]); ++j) {	
 				glNormal(0,1,0);
-				glTexCoord(0,0); 
+				glTexCoord(i/texture_resolution,j/texture_resolution); 
 				glVertex(multiplier*i,     val(height[i][j]), multiplier*j);
-				glTexCoord(0,1); 
+				glNormal(0,1,0);
+				glTexCoord(i/texture_resolution,(j+1)/texture_resolution); 
 				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
-				glTexCoord(1,0); 
+				glNormal(0,1,0);
+				glTexCoord((i+1)/texture_resolution,j/texture_resolution); 
 				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
 				
-				glTexCoord(0,1); 
+				glNormal(0,1,0);
+				glTexCoord(i/texture_resolution,(j+1)/texture_resolution); 
 				glVertex(multiplier*i,     val(height[i][j]), multiplier*(j+1));
-				glTexCoord(1,1); 
+				glNormal(0,1,0);
+				glTexCoord((i+1)/texture_resolution,(j+1)/texture_resolution); 
 				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*(j+1));
-				glTexCoord(1,0); 
+				glNormal(0,1,0);
+				glTexCoord((i+1)/texture_resolution,j/texture_resolution); 
 				glVertex(multiplier*(i+1), val(height[i][j]), multiplier*j);
 			}
 		}
@@ -63,25 +70,27 @@ function Terrain::build_floor_list() {
 }
 
 function Terrain::build_wall_list() {	
+	
 	wall_list = glGenLists(1);
 	glNewList(wall_list, GL_COMPILE);
 	glBegin(GL_TRIANGLES);
 		for (var i = 0; i < Len(height); ++i) {
 			for (var j = 1; j < Len(height[i]); ++j) {
 				if (height[i][j] != height[i][j-1]) {
-					var size = abs(val(height[i][j]) - val(height[i][j-1]))/multiplier; 
-					glTexCoord(1,0); 
+					var size = abs(val(height[i][j]) - val(height[i][j-1]))/texture_resolution; 
+					
+					glTexCoord((i+1)/texture_resolution,0); 
 					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
-					glTexCoord(0,0); 
+					glTexCoord(i/texture_resolution,0); 
 					glVertex(multiplier*i,     val(height[i][j-1]), multiplier*j);
-					glTexCoord(0,size); 
+					glTexCoord(i/texture_resolution,size); 
 					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
 					
-					glTexCoord(1,0); 
+					glTexCoord((i+1)/texture_resolution,0); 
 					glVertex(multiplier*(i+1), val(height[i][j-1]), multiplier*j);
-					glTexCoord(0,size); 
+					glTexCoord(i/texture_resolution,size); 
 					glVertex(multiplier*i,     val(height[i][j]),   multiplier*j);
-					glTexCoord(1,size); 
+					glTexCoord((i+1)/texture_resolution,size); 
 					glVertex(multiplier*(i+1), val(height[i][j]),   multiplier*j);
 				}
 			}
@@ -90,19 +99,19 @@ function Terrain::build_wall_list() {
 		for (var i = 1; i < Len(height); ++i) {
 			for (var j = 0; j < Len(height[i]); ++j) {
 				if (height[i][j] != height[i-1][j]) {
-					var size = abs(val(height[i][j]) - val(height[i-1][j]))/multiplier; 
-					glTexCoord(0,0); 
+					var size = abs(val(height[i][j]) - val(height[i-1][j]))/texture_resolution; 
+					glTexCoord(0,j/texture_resolution); 
 					glVertex(multiplier*i, val(height[i-1][j]), multiplier*j);
-					glTexCoord(0,1); 
+					glTexCoord(0,(j+1)/texture_resolution); 
 					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
-					glTexCoord(size,0); 
+					glTexCoord(size,j/texture_resolution); 
 					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
 					
-					glTexCoord(size,0); 
+					glTexCoord(size,j/texture_resolution); 
 					glVertex(multiplier*i, val(height[i][j]),   multiplier*j);
-					glTexCoord(0,1); 
+					glTexCoord(0,(j+1)/texture_resolution); 
 					glVertex(multiplier*i, val(height[i-1][j]), multiplier*(j+1));
-					glTexCoord(size,1); 
+					glTexCoord(size,(j+1)/texture_resolution); 
 					glVertex(multiplier*i, val(height[i][j]),   multiplier*(j+1));
 				}
 			}
@@ -114,6 +123,7 @@ function Terrain::build_wall_list() {
 function Terrain::Initialize(h, g, w) {
 	height = h;
 	multiplier = 0.5;
+	texture_resolution = 5.0;
 	
 	grass_texture = g;
 	wall_texture = w;
