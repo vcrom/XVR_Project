@@ -1,7 +1,7 @@
 /* Include s3d symbols */
 #include <Script3d.h>
-//#include "SpotLight.s3d"
 
+/*Include our own classes */
 #include "Camera.s3d"
 #include "SkyBox.s3d"
 #include "Terrain.s3d"
@@ -11,13 +11,8 @@ SET SCENE_FOV  = 60;
 SET SCENE_NEAR = 0.5;
 SET SCENE_FAR  = 1000; 
 
-
-// TODO: put your global variables here
-
-
 /* Light globals */
-//var Light0; //spot light¿?
-var PosL = [SCENE_FAR/2, SCENE_FAR/2, -SCENE_FAR/2];	// default light position
+var PosL = [SCENE_FAR/2, SCENE_FAR/2, -SCENE_FAR/2];// default Sun position
 var Sun;
 
 /* Other globals */
@@ -81,23 +76,15 @@ function OnDownload() {
 
 function OnInit(params) {
 	outputln();
-	/* initialize light */
+	//Initialize Sun
 	Sun = CVmLight();
 	Sun.SetPosition(PosL);
 	Sun.SetAmbient([1, 1, 1]);
 	Sun.Enable();
-/*
-	Light0 = SpotlLight();
-	var Lpo = [10,2,10];
-	Light0.Initialize(Lpo);
-	var l_mesh = CVmNewMesh(light_mesh);
-	Light0.SetRenderableObject(l_mesh);
-	Light0.Update();
-*/	
-	crate_texture = CVmTexture(crate);
 	outputln("Sun initialized!");
 
-	//Initialize selecction Mats
+	//Initialize  selectable objects and it's materials
+	crate_texture = CVmTexture(crate);
 	selected_mat = CVmMaterial();
    	selected_mat.ambient   = [0.6, 0.0, 0.0, 1.0];
    	selected_mat.diffuse   = [0.7, 0.8, 0.0, 1.0];
@@ -112,7 +99,7 @@ function OnInit(params) {
    	unselected_mat.SetTexture(crate_texture);
    	unselected_mat.shininess = 5;
    	
-	//Initialize selectable objects
+	crate_texture = CVmTexture(crate);
 	var n_selectable = Len(selectable_ini_position);
 	onMouseL = false;
 	selected = array(n_selectable);
@@ -144,8 +131,7 @@ function OnInit(params) {
 	}
 	UpdateLightsofSelectable ();
 	
-	
-	//Holes virtual objects init
+	//Initialize the holes virtual objects
 	var aux_mat = CVmMaterial();
    	aux_mat.ambient   = [0.4, 0.4, 0.4, 0.0];
    	aux_mat.diffuse   = [0.6, 0.6, 0.6, 0.0];
@@ -165,7 +151,7 @@ function OnInit(params) {
 	 
 	outputln("Objects initialized!");
 	
-	//Audio
+	//Initialize audio
 	var n_sounds = Len(audio_files);
 	audio_sources = array(n_sounds);
 	for(var i = 0; i < n_sounds; ++i)
@@ -176,7 +162,8 @@ function OnInit(params) {
 	}
 	
 	outputln("Audio initialized!");
-	//Skybox Init
+	
+	//Initialize the Skybox
 	var sky_textures = Array(Len(skybox_files));
 	for(var i = 0; i < Len(sky_textures); ++i)
 		sky_textures[i] = CVmTexture(skybox_files[i]);
@@ -184,7 +171,7 @@ function OnInit(params) {
 	sky_box.Initialize(sky_textures, SCENE_FAR);
 	outputln("Skybox initialized!");
 	
-	//Terrain
+	//Initialize the Terrain from a file
 	var tmp = LoadFile(map);
    	height = array(0);
    	for (var i = 0; i < Len(tmp); ++i) {
@@ -200,21 +187,19 @@ function OnInit(params) {
 	renderable_terrain.Initialize(height, grass_texture, wall_texture);
 	outputln("Terrain initialized!");
 	
+	//Initialize user cammera
 	CameraInit(height);
 	outputln("Camera initialized!");
+	
 	//OpenGl Inits
 	glEnable(GL_BLEND);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);   
 	
-	//var m_mesh = CVmNewMesh(mesh_src); // The mesh is created from the specified AAM file
-   	//m_mesh.CenterBoundingBox();      // Mesh geometry is translated so as to put the origin in the center of the mesh bounding box
-   	//m_mesh.Normalize(10); 
-   	//global my_obj = CVmObj(m_mesh);
-   	//my_obj.SetPosition(Lpo[0], Lpo[1], Lpo[2]+10);
-   	
+	//Play music at the begining of the game
+	audio_sources[1].Play();	
 }
 
 function UpdateLightsofSelectable ()
@@ -275,7 +260,7 @@ function IsSelected(object)
 	var winx = Mouse.X+1;
 	var winy = viewport[3]-Mouse.Y;
 	var point1=gluUnproject(winx,winy,0.0); 
-	var point2=gluUnproject(winx,winy,1.0);//* SCENE_FAR;
+	var point2=gluUnproject(winx,winy,1.0);
 	var pInt=[0,0,0];  	//Will store the closest intersection point (to point1)
 	var nrml=[0,0,0];  	//Will store the normal on that point
 	var n_TR = 0; 		//Will store the triangle index
@@ -334,7 +319,7 @@ function UpdateSelectableObjects() {
 	for(var i = 0; i < Len(selectabe_objects); ++i) {
 		if(Mouse.ButtonL && !onMouseL) {
 			if(!already_selected && IsSelected(selectabe_objects[i])) {
-				outputln(Mouse.Wheel); //IMPORTANT, DO NOT DELETE
+				outputln(Mouse.Wheel);
 				selected[i] = !selected[i];
 				already_selected = true;
 			} else {
@@ -375,13 +360,10 @@ function isAnyObjectSelected() {
 
 function RenderHoles() 
 {
-	//If it is not Rendered doesen't detect colisions
+	//If it is not Rendered doesen't detect colisions between crates and holes, possible Bug related to Objects
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
-	var n_holes = Len(holes_position);
-	for(var i = 0; i < n_holes; ++i)
-	{
+	for(var i = 0; i < Len(holes_position); ++i)
 		virtual_holes[i].Draw(VR_WIREFRAME);
-	}
 	glPopAttrib();
 }
 
@@ -397,9 +379,10 @@ function OnFrame() {
 	sky_box.Render(CameraGetPosition());
 	renderable_terrain.DrawTerrain();
 	
-	UpdateSelectableObjects();
 	DrawSelectableObjects();
 	RenderHoles();
+	//Render must go before colision detection, because otherwise in the first frame to collision is not detected properly(always true)
+	UpdateSelectableObjects();
 	
 	SceneEnd();
 }

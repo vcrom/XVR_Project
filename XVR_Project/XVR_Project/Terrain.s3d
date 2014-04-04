@@ -22,9 +22,6 @@ class Terrain
 function Terrain::DrawTerrain() {
 	/* let's not mess up current OpenGL status */
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
-	
-	//glDisable(GL_LIGHTING);
-
 	glEnable(GL_TEXTURE_2D);
 	SetActiveTexture(grass_texture, VR_BILINEAR_FILTER, 0);
 	glCallList(floor_list);
