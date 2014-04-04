@@ -30,8 +30,8 @@ var castle_mesh = "castle.AAM";
 var castle;
 
 //Selecction
-set MAX_SEL_LENGTH = 10;
-var selectable_ini_position = {[30, 0, 23], [34, 0, 35], [27, 0, 41]};
+set MAX_SEL_LENGTH = 20;
+var selectable_ini_position = {[30, 0, 23], [34, 0, 35], [26, 0, 19], [26, 0, 30], [27, 0, 41], [50, 0, 50]};
 var lights_of_selectable;
 var selectabe_objects;
 var selected;
@@ -44,7 +44,8 @@ var onMouseR;
 //Holes
 var audio_files = {"sounds\\error.wav", "sounds\\correct.wav"};
 var audio_sources;
-var holes_position = {[60, 3, 52], [2, 3, 62],  [3, 0, 11.5]};
+var holes_position = {[60, 3, 52], [5, 0, 62], [2, 0, 60], [2, 3, 62], [3, 0, 11.5], [62, 0, 2]};
+var holes_scales = [1, 2, 2, 1, 1, 1];
 var virtual_holes;
 var in_hole;
 
@@ -57,6 +58,7 @@ var wall = "wall.png";
 var grass = "grass.png";
 var height;
 var renderable_terrain;
+var crate_texture;
 
 function ScaleObject(index);
 function UpdateLightsofSelectable();
@@ -74,6 +76,7 @@ function OnDownload() {
 	
 	FileDownload(grass);
 	FileDownload(wall);
+	FileDownload(crate);
 }
 
 function OnInit(params) {
@@ -91,6 +94,7 @@ function OnInit(params) {
 	Light0.SetRenderableObject(l_mesh);
 	Light0.Update();
 */	
+	crate_texture = CVmTexture(crate);
 	outputln("Sun initialized!");
 
 	//Initialize selecction Mats
@@ -98,12 +102,14 @@ function OnInit(params) {
    	selected_mat.ambient   = [0.6, 0.0, 0.0, 1.0];
    	selected_mat.diffuse   = [0.7, 0.8, 0.0, 1.0];
    	selected_mat.specular  = [0.8, 0.8, 0.8, 1.0];
+   	selected_mat.SetTexture(crate_texture);
    	selected_mat.shininess = 5;
    	
 	unselected_mat = CVmMaterial();
    	unselected_mat.ambient   = [0.4, 0.4, 0.4, 1.0];
    	unselected_mat.diffuse   = [0.6, 0.6, 0.6, 1.0];
    	unselected_mat.specular  = [0.8, 0.8, 0.8, 1.0];
+   	unselected_mat.SetTexture(crate_texture);
    	unselected_mat.shininess = 5;
    	
 	//Initialize selectable objects
@@ -117,7 +123,7 @@ function OnInit(params) {
 	
 	for(var i = 0; i < n_selectable; ++i)
 	{
-		var box_mesh = CVmNewMesh(VRP_BOX, 0, [0,0,0], [1,1,1]);
+		var box_mesh = CVmNewMesh(VRP_BOX, 0, [0,0,0], [2,2,2]);
 		box_mesh.CenterBoundingBox();
 		selectabe_objects[i] = CVmObj(box_mesh);
 		selectabe_objects[i].SetPosition(selectable_ini_position[i]);
@@ -125,12 +131,12 @@ function OnInit(params) {
 		//Atributes
 		selected[i] = false;
 		in_hole[i] = false;
-		scaling[i] = Rand(3);
+		scaling[i] = 1;
 		ScaleObject(i);
 		//Lights
 		lights_of_selectable[i] = CVmLight();
 		lights_of_selectable[i].SetPosition(selectable_ini_position[i]);
-		lights_of_selectable[i].SetDiffuse([0.8, 0, 0]);
+		lights_of_selectable[i].SetDiffuse([1, 0, 0]);
 		lights_of_selectable[i].SetSpecular([0.9, 0, 0]);
 		lights_of_selectable[i].SetParameter(GL_LINEAR_ATTENUATION, 1);
 		lights_of_selectable[i].Enable();
@@ -189,6 +195,7 @@ function OnInit(params) {
 	var wall_texture = CVmTexture(wall);
 	var grass_texture = CVmTexture(grass);
 	
+	
 	renderable_terrain = Terrain();
 	renderable_terrain.Initialize(height, grass_texture, wall_texture);
 	outputln("Terrain initialized!");
@@ -233,7 +240,7 @@ function UpdateObjectsInHoles()
 			if(!correct &&  selectabe_objects[i].IsCollidingBBox(virtual_holes[j]))
 			{
 				aux = true;
-				if(i == j) 
+				if(i == j && scaling[i] == holes_scales[j]) 
 				{
 					correct = true;
 					if(!in_hole[i]) audio_sources[1].Play();
@@ -291,9 +298,8 @@ function ObjectToMouse(index) {
 	
 	if (p0[0] == check_out_of_limits(p0[0], Len(height)/2) &&
 		p0[2] == check_out_of_limits(p0[2], Len(height[0])/2)) {
-		//outputln("P0", p0);
-		//outputln(val(height[p0[0]*2][p0[2]*2]) + scaling[index]/2);
-		if (p0[1] > val(height[p0[0]*2][p0[2]*2]) + scaling[index]/2)
+
+		if (p0[1] > val(height[p0[0]*2][p0[2]*2]) + scaling[index])
 			selectabe_objects[index].SetPosition(p0);
 	}
 }
@@ -330,6 +336,7 @@ function UpdateSelectableObjects() {
 			if(!already_selected && IsSelected(selectabe_objects[i])) {
 				outputln(Mouse.Wheel); //IMPORTANT, DO NOT DELETE
 				selected[i] = !selected[i];
+				already_selected = true;
 			} else {
 				selected[i] = false;
 			}
@@ -377,6 +384,7 @@ function RenderHoles()
 	}
 	glPopAttrib();
 }
+
 function OnFrame() {
 	/* manage camera */
 	if (!isAnyObjectSelected())
@@ -387,7 +395,6 @@ function OnFrame() {
 	SceneBegin();
 	
 	sky_box.Render(CameraGetPosition());
-	//DrawGrid([0.5, 0.5, 0.5], 100);
 	renderable_terrain.DrawTerrain();
 	
 	UpdateSelectableObjects();
