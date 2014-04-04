@@ -31,16 +31,16 @@ function SpotlLight::Initialize(pos)
 	light_renderable_object = null;
 	
 	
-	light.SetAmbient([0.8, 0.8, 0.8]);
+	light.SetAmbient([0.0, 0.0, 0.0]);
 	light.SetDiffuse([0.7, 0.7, 0.7]);
 	light.SetSpecular([0.9, 0.9, 0.9]);
 	//light.SetDirection(0,0,1);
 	light.SetPosition(position);
-	light.SetSpotDirection([0,0,position[2]+1]);
+	light.SetSpotDirection([0,0,1]);
 	//light.SetPosition(position);
-	light.SetParameter(GL_SPOT_EXPONENT, 45);
-	light.SetParameter(GL_SPOT_CUTOFF, 100);
-	light.Enable();
+	//light.SetParameter(GL_SPOT_EXPONENT, 45);
+	//light.SetParameter(GL_SPOT_CUTOFF, 100);
+	//light.Enable();
 }
 
 function SpotlLight::SetRenderableObject(mesh)
@@ -90,8 +90,8 @@ function SpotlLight::Update()
 	//Update teh light itself
 	//outputln("\nLook: ", look_at_vector);
 	//outputln("\n L+ P: ", position[0]+look_at_vector[0]," ", position[1]+look_at_vector[1]," ", position[2]+look_at_vector[2]);
-	//light.SetSpotDirection(position[0]+2*look_at_vector[0], position[1]+2*look_at_vector[1], position[2]+2*look_at_vector[2]);	
-	//light.SetPosition(position);
+	light.SetSpotDirection(look_at_vector[0],look_at_vector[1], look_at_vector[2]);	
+	light.SetPosition(position);
 	//light.SetDirection(look_at_vector);
 	
 	//Update renderable obj
